@@ -1,18 +1,18 @@
+import com.android.build.api.dsl.ApplicationExtension
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
 }
 
-android {
-    namespace = "com.kotonosora.echomaze"
-    compileSdk = 35
+configure<ApplicationExtension> {
+    namespace = "com.jn.echomaze"
+    compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.kotonosora.echomaze"
-        minSdk = 24
-        targetSdk = 35
+        applicationId = "com.jn.echomaze"
+        minSdk = 30
         versionCode = 1
         versionName = "1.0"
 
@@ -21,7 +21,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -35,10 +36,6 @@ android {
     buildFeatures {
         compose = true
     }
-}
-
-kotlin {
-    jvmToolchain(11)
 }
 
 dependencies {
