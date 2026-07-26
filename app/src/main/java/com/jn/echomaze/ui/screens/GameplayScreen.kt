@@ -1,321 +1,343 @@
 package com.jn.echomaze.ui.screens
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Lightbulb
-import androidx.compose.material.icons.rounded.Map
-import androidx.compose.material.icons.rounded.MonetizationOn
+import androidx.compose.material.icons.rounded.Numbers
 import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jn.echomaze.engine.MazeData
-import com.jn.echomaze.engine.PulseEngine
-import com.jn.echomaze.ui.components.glow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
+import com.jn.echomaze.ui.components.NeonButton
+import com.jn.echomaze.ui.components.NeonCard
+import com.jn.echomaze.ui.components.NeonScaffold
+import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
-import com.jn.echomaze.ui.theme.GoldCoin
-import com.jn.echomaze.ui.theme.NeonPurple
-import com.jn.echomaze.ui.theme.PressStart2P
-import kotlin.math.max
+import com.jn.echomaze.ui.theme.NeonPink
+import com.jn.echomaze.ui.theme.NeonYellow
 
 @Composable
 fun GameplayScreen(
     levelId: Int,
     coins: Int,
-    pulsesRemaining: Int,
-    pulseEngine: PulseEngine,
-    mazeData: MazeData?,
-    playerPos: Offset,
-    onMove: (Offset) -> Unit,
+    movesCount: Int,
+    maxMoves: Int,
+    gridSize: Int,
+    tiles: List<Int>,
+    imageRes: Int?,
+    showNumbersHint: Boolean,
+    showPreviewHint: Boolean,
+    onTileClick: (Int) -> Unit,
     onPauseClick: () -> Unit,
-    onPulseClick: (Float, Float) -> Unit,
-    onBuyExtraPulses: () -> Unit,
-    onRevealMap: () -> Unit,
-    onBuyHint: () -> Unit
+    onQuickBuyCoins: () -> Unit,
+    onHintNumbersClick: () -> Unit,
+    onHintPreviewClick: () -> Unit
 ) {
-    val pulses = pulseEngine.activePulses
-    
-    // Create a state that updates every frame to drive animations
-    val frameTime by produceState(initialValue = System.currentTimeMillis()) {
-        while (true) {
-            withFrameMillis {
-                value = System.currentTimeMillis()
-            }
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        // Game Area / Maze
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(playerPos) {
-                    detectDragGestures { change, dragAmount ->
-                        change.consume()
-                        onMove(playerPos + dragAmount)
-                    }
-                }
-        ) {
-            val now = frameTime
-            val walls = mazeData?.walls ?: emptyList()
-            
-            // Draw walls based on pulse visibility
-            walls.forEach { wall ->
-                var maxVisibility = 0f
-                pulses.forEach { pulse ->
-                    maxVisibility = max(maxVisibility, pulse.getVisibilityAt(wall.bounds, now))
-                }
-                
-                if (maxVisibility > 0f) {
-                    drawRect(
-                        color = CyberCyan.copy(alpha = maxVisibility),
-                        topLeft = wall.bounds.topLeft,
-                        size = wall.bounds.size
-                    )
-                    drawRect(
-                        color = Color.White.copy(alpha = maxVisibility * 0.5f),
-                        topLeft = wall.bounds.topLeft,
-                        size = wall.bounds.size,
-                        style = Stroke(width = 1.dp.toPx())
-                    )
-                }
-            }
-
-            // Draw Exit
-            mazeData?.let { data ->
-                var exitVisibility = 0.2f
-                pulses.forEach { pulse ->
-                    val dx = pulse.centerX - data.exitPos.x
-                    val dy = pulse.centerY - data.exitPos.y
-                    val dist = kotlin.math.sqrt(dx * dx + dy * dy)
-                    if (dist < pulse.getCurrentRadius(now)) {
-                        exitVisibility = 1.0f
-                    }
-                }
-
-                drawCircle(
-                    color = NeonPurple.copy(alpha = exitVisibility),
-                    radius = 40f,
-                    center = data.exitPos,
-                    style = Stroke(width = 4f)
-                )
-                drawCircle(
-                    color = NeonPurple.copy(alpha = exitVisibility * 0.5f),
-                    radius = 20f + (now % 1000 / 50f),
-                    center = data.exitPos
-                )
-            }
-
-            // Draw pulses
-            pulses.forEach { pulse ->
-                val progress = pulse.getProgress(now)
-                val radius = pulse.getCurrentRadius(now)
-                drawCircle(
-                    color = CyberCyan.copy(alpha = (1f - progress) * 0.8f),
-                    radius = radius,
-                    center = Offset(pulse.centerX, pulse.centerY),
-                    style = Stroke(width = 6.dp.toPx())
-                )
-            }
-
-            // Draw player (Orb)
-            drawCircle(
-                color = Color.White,
-                radius = 12.dp.toPx(),
-                center = playerPos
-            )
-            drawCircle(
-                color = CyberCyan,
-                radius = 16.dp.toPx(),
-                center = playerPos,
-                style = Stroke(width = 2.dp.toPx())
+    NeonScaffold(
+        topBar = {
+            HeaderBar(
+                variant = HeaderVariant.GAMEPLAY,
+                title = if (levelId == 0) "DAILY" else levelId.toString().padStart(2, '0'),
+                coinBalance = coins,
+                onCoinsClick = onQuickBuyCoins,
+                onActionClick = onPauseClick,
+                actionIcon = Icons.Rounded.Pause
             )
         }
-
-        // HUD - Top
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = "LEVEL",
-                    color = Color.White.copy(alpha = 0.6f),
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = PressStart2P)
-                )
-                Text(
-                    text = levelId.toString().padStart(2, '0'),
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = PressStart2P
-                    )
-                )
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                    .border(2.dp, GoldCoin.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Pause,
-                    contentDescription = "Pause",
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable { onPauseClick() }
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "$coins",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = PressStart2P
-                    )
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Rounded.MonetizationOn,
-                    contentDescription = null,
-                    tint = GoldCoin,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-        }
-
-        // Bottom Controls
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CoinActionButton(Icons.Rounded.Add, "PULSE", "50", onBuyExtraPulses)
-                CoinActionButton(Icons.Rounded.Map, "REVEAL", "100", onRevealMap)
-                CoinActionButton(Icons.Rounded.Lightbulb, "HINT", "75", onBuyHint)
-            }
+            Spacer(modifier = Modifier.weight(1f))
 
-            PulseButton(
-                pulsesRemaining = pulsesRemaining,
-                onClick = {
-                    if (pulsesRemaining > 0) {
-                        onPulseClick(playerPos.x, playerPos.y)
+            // Puzzle Grid
+            BoxWithConstraints(
+                modifier = Modifier
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                val spacing = 8.dp
+                val boardSize = maxWidth
+                val tileSize = (boardSize - (spacing * (gridSize + 1))) / gridSize
+
+                Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
+                    for (r in 0 until gridSize) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
+                            for (c in 0 until gridSize) {
+                                val index = r * gridSize + c
+                                Box(modifier = Modifier.size(tileSize)) {
+                                    if (index < tiles.size) {
+                                        val tileId = tiles[index]
+                                        PuzzleTile(
+                                            tileId = tileId,
+                                            gridSize = gridSize,
+                                            imageRes = imageRes,
+                                            showNumbers = showNumbersHint,
+                                            onClick = { onTileClick(index) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-            )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Hint Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                NeonButton(
+                    text = if (showNumbersHint) "HIDE #" else "SHOW # (10)",
+                    onClick = onHintNumbersClick,
+                    modifier = Modifier.weight(1f),
+                    color = NeonYellow,
+                    icon = Icons.Rounded.Numbers
+                )
+                NeonButton(
+                    text = "PREVIEW",
+                    onClick = onHintPreviewClick,
+                    modifier = Modifier.weight(1f),
+                    color = NeonPink,
+                    icon = Icons.Rounded.Visibility
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Stats - Bottom
+            NeonCard(color = CyberCyan, modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "MOVES",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "$movesCount / $maxMoves",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (movesCount > maxMoves * 0.8f) Color.Red else CyberCyan,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    VerticalDivider(
+                        modifier = Modifier.height(40.dp),
+                        color = Color.White.copy(alpha = 0.1f)
+                    )
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "TARGET",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "${gridSize * gridSize * 10}",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        if (showPreviewHint && imageRes != null) {
+            PreviewHintDialog(imageRes = imageRes, onDismiss = onHintPreviewClick)
         }
     }
 }
 
 @Composable
-fun CoinActionButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, cost: String, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun PuzzleTile(
+    tileId: Int,
+    gridSize: Int,
+    imageRes: Int?,
+    showNumbers: Boolean,
+    onClick: () -> Unit
+) {
+    if (tileId == 0) {
+        Box(modifier = Modifier.fillMaxSize())
+    } else {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { onClick() },
+            color = if (imageRes != null) Color.Black else CyberCyan.copy(alpha = 0.8f),
+            border = BorderStroke(
+                2.dp,
+                if (imageRes != null) CyberCyan.copy(alpha = 0.5f) else CyberCyan
+            )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                if (imageRes != null) {
+                    BoxWithConstraints(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clipToBounds()
+                    ) {
+                        val originalRow = (tileId - 1) / gridSize
+                        val originalCol = (tileId - 1) % gridSize
+
+                        val offsetX = -originalCol * maxWidth.value
+                        val offsetY = -originalRow * maxHeight.value
+
+                        Image(
+                            painter = painterResource(id = imageRes),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(maxWidth * gridSize, maxHeight * gridSize)
+                                .offset {
+                                    IntOffset(
+                                        (offsetX * density).toInt(),
+                                        (offsetY * density).toInt()
+                                    )
+                                },
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
+                }
+
+                if (imageRes == null || showNumbers) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                if (imageRes != null) Color.Black.copy(alpha = 0.4f)
+                                else Color.Transparent
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = tileId.toString(),
+                            color = if (imageRes != null) Color.White else Color.Black,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PreviewHintDialog(imageRes: Int, onDismiss: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable { onDismiss() },
+        color = Color.Black.copy(alpha = 0.9f)
+    ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .glow(GoldCoin, alpha = 0.3f, borderRadius = 8.dp, blurRadius = 8.dp, offsetY = 2.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
-                .border(2.dp, GoldCoin.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                .clickable(onClick = onClick),
+                .fillMaxSize()
+                .padding(32.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(imageVector = icon, contentDescription = label, tint = GoldCoin, modifier = Modifier.size(24.dp))
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            color = Color.White.copy(alpha = 0.8f),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = PressStart2P,
-                fontSize = 8.sp
-            )
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = cost,
-                color = Color.White,
-                style = MaterialTheme.typography.labelSmall.copy(fontFamily = PressStart2P, fontSize = 8.sp)
-            )
-            Spacer(modifier = Modifier.width(2.dp))
-            Icon(imageVector = Icons.Rounded.MonetizationOn, contentDescription = null, tint = GoldCoin, modifier = Modifier.size(10.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "TARGET IMAGE",
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = "Preview",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(2.dp, CyberCyan, RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.FillBounds
+                )
+                Text(
+                    text = "Tap anywhere to return",
+                    color = Color.White.copy(alpha = 0.5f),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(top = 24.dp)
+                )
+            }
         }
     }
 }
 
+@Preview(showBackground = true)
 @Composable
-fun PulseButton(pulsesRemaining: Int, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(140.dp)
-            .glow(CyberCyan, alpha = 0.5f, borderRadius = 16.dp, blurRadius = 24.dp, offsetY = 8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(CyberCyan.copy(alpha = 0.4f), Color.Transparent)
-                )
-            )
-            .border(4.dp, CyberCyan, RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick, enabled = pulsesRemaining > 0),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "PULSE",
-                color = if (pulsesRemaining > 0) Color.White else Color.White.copy(alpha = 0.5f),
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 2.sp,
-                    fontFamily = PressStart2P
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "$pulsesRemaining LEFT",
-                color = if (pulsesRemaining > 0) CyberCyan else Color.Red,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = PressStart2P,
-                    fontSize = 10.sp
-                )
-            )
-        }
+fun GameplayScreenPreview() {
+    AppTheme {
+        GameplayScreen(
+            levelId = 1,
+            coins = 150,
+            movesCount = 5,
+            maxMoves = 50,
+            gridSize = 3,
+            tiles = listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
+            imageRes = null,
+            showNumbersHint = true,
+            showPreviewHint = false,
+            onTileClick = {},
+            onPauseClick = {},
+            onQuickBuyCoins = {},
+            onHintNumbersClick = {},
+            onHintPreviewClick = {}
+        )
     }
 }

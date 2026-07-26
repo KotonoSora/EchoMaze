@@ -1,17 +1,20 @@
 package com.jn.echomaze.ui.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -73,11 +76,6 @@ fun GlowButton(
     ) {
         Box(
             modifier = Modifier
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(color.copy(alpha = 0.4f), color.copy(alpha = 0.1f))
-                    )
-                )
                 .padding(horizontal = 24.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -112,11 +110,7 @@ fun IconButtonGlow(
         border = BorderStroke(2.dp, color.copy(alpha = 0.8f))
     ) {
         Box(
-            modifier = Modifier.background(
-                Brush.verticalGradient(
-                    colors = listOf(color.copy(alpha = 0.3f), Color.Transparent)
-                )
-            ),
+            modifier = Modifier,
             contentAlignment = Alignment.Center
         ) {
             Icon(

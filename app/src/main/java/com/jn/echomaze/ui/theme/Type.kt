@@ -1,33 +1,122 @@
 package com.jn.echomaze.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.jn.echomaze.R
 
-// Define the global font family
 val PressStart2P = FontFamily(
     Font(R.font.press_start_2p, FontWeight.Normal)
 )
 
-private val defaultTypography = Typography()
-
-// Apply the font family to all Material typography styles
+// Set all typography to use PressStart2P as the default
 val Typography = Typography(
-    displayLarge = defaultTypography.displayLarge.copy(fontFamily = PressStart2P),
-    displayMedium = defaultTypography.displayMedium.copy(fontFamily = PressStart2P),
-    displaySmall = defaultTypography.displaySmall.copy(fontFamily = PressStart2P),
-    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = PressStart2P),
-    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = PressStart2P),
-    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = PressStart2P),
-    titleLarge = defaultTypography.titleLarge.copy(fontFamily = PressStart2P),
-    titleMedium = defaultTypography.titleMedium.copy(fontFamily = PressStart2P),
-    titleSmall = defaultTypography.titleSmall.copy(fontFamily = PressStart2P),
-    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = PressStart2P),
-    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = PressStart2P),
-    bodySmall = defaultTypography.bodySmall.copy(fontFamily = PressStart2P),
-    labelLarge = defaultTypography.labelLarge.copy(fontFamily = PressStart2P),
-    labelMedium = defaultTypography.labelMedium.copy(fontFamily = PressStart2P),
-    labelSmall = defaultTypography.labelSmall.copy(fontFamily = PressStart2P)
+    displayLarge = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 57.sp,
+        lineHeight = 64.sp,
+        letterSpacing = (-0.25).sp
+    ),
+    displayMedium = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 45.sp,
+        lineHeight = 52.sp,
+        letterSpacing = 0.sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 36.sp,
+        lineHeight = 44.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.15.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.4.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = PressStart2P,
+        fontWeight = FontWeight.Normal,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    )
 )

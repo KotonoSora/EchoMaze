@@ -1,15 +1,20 @@
 package com.jn.echomaze.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,12 +25,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.NeonCard
+import com.jn.echomaze.ui.components.NeonScaffold
+import com.jn.echomaze.ui.components.NeonTitle
 import com.jn.echomaze.ui.components.glow
+import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
-import com.jn.echomaze.ui.theme.EchoMazeTheme
 import com.jn.echomaze.ui.theme.GoldCoin
 import com.jn.echomaze.ui.theme.NeonPurple
-import com.jn.echomaze.ui.theme.PressStart2P
 
 @Composable
 fun LevelCompleteScreen(
@@ -35,40 +42,20 @@ fun LevelCompleteScreen(
     onNextLevelClick: () -> Unit,
     onReplayClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .systemBarsPadding()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    NeonScaffold { paddingValues ->
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            Text(
-                text = "LEVEL\nCOMPLETE!",
-                style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 4.sp,
-                    lineHeight = 50.sp,
-                    fontFamily = PressStart2P
-                ),
-                color = CyberCyan,
-                modifier = Modifier.glow(CyberCyan, alpha = 0.5f)
-            )
+            Spacer(modifier = Modifier.weight(weight = 0.1f))
 
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .glow(NeonPurple, alpha = 0.2f, borderRadius = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                border = androidx.compose.foundation.BorderStroke(2.dp, NeonPurple.copy(alpha = 0.5f))
-            ) {
+            NeonTitle(text = "LEVEL COMPLETE!", color = CyberCyan, fontSize = 24.sp)
+
+            NeonCard(color = NeonPurple, modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
@@ -76,41 +63,50 @@ fun LevelCompleteScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        StatItem(label = "TIME", value = "45s") // Placeholder
-                        StatItem(label = "COINS EARNED", value = "+$coinsEarned", valueColor = GoldCoin)
+                        StatItem(label = "TIME", value = "45s")
+                        StatItem(
+                            label = "XP EARNED",
+                            value = "+160",
+                            valueColor = CyberCyan
+                        )
+                        StatItem(
+                            label = "COINS",
+                            value = "+$coinsEarned",
+                            valueColor = GoldCoin
+                        )
                     }
 
-                    // Score Display
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "TOTAL SCORE:",
-                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = PressStart2P),
+                            style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.6f)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = score.toString(),
-                            style = MaterialTheme.typography.displaySmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = PressStart2P
-                            ),
-                            color = Color.White
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
-                    // Stars
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         repeat(3) {
                             Icon(
                                 imageVector = Icons.Rounded.Star,
                                 contentDescription = null,
                                 tint = GoldCoin,
-                                modifier = Modifier.size(48.dp).glow(GoldCoin, alpha = 0.3f)
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .glow(GoldCoin, alpha = 0.3f)
                             )
                         }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.weight(weight = 1f))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -124,7 +120,7 @@ fun LevelCompleteScreen(
                     color = NeonPurple,
                     modifier = Modifier.size(64.dp)
                 )
-                
+
                 IconButtonGlow(
                     icon = Icons.AutoMirrored.Rounded.NavigateNext,
                     contentDescription = "Next Level",
@@ -133,6 +129,8 @@ fun LevelCompleteScreen(
                     modifier = Modifier.size(80.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -142,20 +140,15 @@ private fun StatItem(label: String, value: String, valueColor: Color = Color.Whi
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = PressStart2P,
-                fontSize = 10.sp
-            ),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             color = Color.White.copy(alpha = 0.6f)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontFamily = PressStart2P
-            ),
-            color = valueColor
+            style = MaterialTheme.typography.titleMedium,
+            color = valueColor,
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -163,7 +156,7 @@ private fun StatItem(label: String, value: String, valueColor: Color = Color.Whi
 @Preview
 @Composable
 fun LevelCompletePreview() {
-    EchoMazeTheme {
+    AppTheme {
         LevelCompleteScreen(1, 9800, 50, {}, {})
     }
 }

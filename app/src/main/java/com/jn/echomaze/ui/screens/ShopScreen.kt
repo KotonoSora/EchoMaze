@@ -1,191 +1,384 @@
 package com.jn.echomaze.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.rounded.Undo
+import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.Diamond
+import androidx.compose.material.icons.rounded.Lightbulb
+import androidx.compose.material.icons.rounded.MonetizationOn
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Savings
+import androidx.compose.material.icons.rounded.Tv
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jn.echomaze.ui.components.GlowButton
-import com.jn.echomaze.ui.components.IconButtonGlow
-import com.jn.echomaze.ui.components.glow
-import com.jn.echomaze.ui.theme.*
-
-data class ShopItem(
-    val id: String,
-    val name: String,
-    val description: String,
-    val price: Int,
-    val icon: ImageVector,
-    val color: Color,
-    val isIAP: Boolean = false
-)
+import androidx.compose.ui.unit.sp
+import com.jn.echomaze.billing.CoinProduct
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
+import com.jn.echomaze.ui.components.NeonButton
+import com.jn.echomaze.ui.components.NeonCard
+import com.jn.echomaze.ui.components.NeonScaffold
+import com.jn.echomaze.ui.theme.AppTheme
+import com.jn.echomaze.ui.theme.CyberCyan
+import com.jn.echomaze.ui.theme.GoldCoin
+import com.jn.echomaze.ui.theme.NeonPurple
 
 @Composable
 fun ShopScreen(
     coinBalance: Int,
+    isStoreAvailable: Boolean,
+    coinProducts: List<CoinProduct>,
+    adCooldown: Long,
     onBackClick: () -> Unit,
-    onBuyUpgrade: (ShopItem) -> Unit,
-    onBuyCoins: (String) -> Unit,
+    onWatchAd: () -> Unit,
+    onBuyProduct: (CoinProduct) -> Unit,
+    onBuyUpgrade: (String) -> Unit,
     onRestorePurchases: () -> Unit
 ) {
-    val upgrades = listOf(
-        ShopItem("radius", "Pulse Radius", "Increase pulse reveal area.", 500, Icons.Rounded.RadioButtonChecked, CyberCyan),
-        ShopItem("duration", "Pulse Duration", "Make pulses last longer.", 300, Icons.Rounded.History, NeonPurple),
-        ShopItem("hint", "Hint Path", "Temporarily show the correct path.", 1000, Icons.Rounded.Route, GoldCoin)
-    )
-
-    val coinPacks = listOf(
-        ShopItem("coins_100", "100 Coins", "Starter pack", 29, Icons.Rounded.Add, GoldCoin, true),
-        ShopItem("coins_500", "500 Coins", "Explorer pack", 49, Icons.Rounded.AddCircle, CyberCyan, true),
-        ShopItem("coins_1000", "1000 Coins", "Pro pack", 69, Icons.Rounded.MonetizationOn, NeonPurple, true),
-        ShopItem("coins_1500", "1500 Coins", "Pro+ pack", 99, Icons.Rounded.MonetizationOn, NeonPurple, true),
-        ShopItem("coins_2000", "2000 Coins", "Expert pack", 199, Icons.Rounded.Stars, ElectricBlue, true),
-        ShopItem("coins_2500", "2500 Coins", "Master pack", 399, Icons.Rounded.Stars, ElectricBlue, true),
-        ShopItem("coins_3000", "3000 Coins", "Master+ pack", 499, Icons.Rounded.Stars, ElectricBlue, true),
-        ShopItem("coins_3500", "3500 Coins", "Legend pack", 799, Icons.Rounded.Diamond, GoldCoin, true),
-        ShopItem("coins_4000", "4000 Coins", "Ultimate pack", 999, Icons.Rounded.Diamond, GoldCoin, true)
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .systemBarsPadding()
-            .padding(24.dp)
-    ) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButtonGlow(
-                icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Back",
-                onClick = onBackClick
+    NeonScaffold(
+        topBar = {
+            HeaderBar(
+                variant = HeaderVariant.STANDARD,
+                title = "TREASURY",
+                coinBalance = coinBalance,
+                onBackClick = onBackClick
             )
-
+        }
+    ) { _ ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+        ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = coinBalance.toString(),
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.Rounded.MonetizationOn,
-                    contentDescription = null,
-                    tint = GoldCoin,
-                    modifier = Modifier.size(20.dp)
-                )
+                // HeaderBar already has title, but this screen has it inside Column too.
+                // I'll keep the text inside but maybe remove NeonTitle from HeaderBar if it feels redundant?
+                // The requirement says "other screen always have header bar with back icon, title on left, number of coins on right"
+                // So I'll remove the redundant NeonTitle from the Column.
+                Spacer(modifier = Modifier.height(0.dp))
+                TextButton(onClick = onRestorePurchases) {
+                    Text("RESTORE", color = CyberCyan, style = MaterialTheme.typography.labelSmall)
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "SHOP",
-                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold),
-                color = Color.White
-            )
-            TextButton(onClick = onRestorePurchases) {
-                Text("Restore", color = CyberCyan)
-            }
-        }
+            if (!isStoreAvailable && coinProducts.isEmpty()) {
+                StoreUnavailableState(onRetry = onRestorePurchases)
+            } else if (coinProducts.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "NO ITEMS FOR SALE", color = Color.Gray)
+                }
+            } else {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(32.dp)
+                ) {
+                    CoinGridSection(
+                        coinProducts = coinProducts,
+                        adCooldown = adCooldown,
+                        onWatchAd = onWatchAd,
+                        onBuyProduct = onBuyProduct
+                    )
 
-        Spacer(modifier = Modifier.height(16.dp))
+                    UpgradeSection(onBuyUpgrade = onBuyUpgrade)
 
-        Text(text = "UPGRADES", style = MaterialTheme.typography.titleMedium, color = CyberCyan)
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            items(upgrades) { item ->
-                ShopCard(item = item, onBuy = { onBuyUpgrade(item) })
-            }
-        }
+                    NeonButton(
+                        text = "SKINS & POWER-UPS",
+                        onClick = { /* Navigate to skins */ },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = NeonPurple,
+                        icon = Icons.Rounded.Palette
+                    )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(text = "GET COINS", style = MaterialTheme.typography.titleMedium, color = NeonPurple)
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            items(coinPacks) { item ->
-                ShopCard(item = item, onBuy = { onBuyCoins(item.id) })
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-fun ShopCard(item: ShopItem, onBuy: () -> Unit) {
-    Surface(
+fun StoreUnavailableState(onRetry: () -> Unit) {
+    Column(
         modifier = Modifier
-            .width(180.dp)
-            .height(260.dp)
-            .glow(item.color, alpha = 0.15f, borderRadius = 24.dp),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, item.color.copy(alpha = 0.3f))
+            .fillMaxSize()
+            .padding(bottom = 100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.CloudOff,
+            contentDescription = null,
+            tint = Color.Gray,
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "STORE CURRENTLY UNAVAILABLE",
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        NeonButton(text = "TRY AGAIN", onClick = onRetry, color = CyberCyan)
+    }
+}
+
+@Composable
+fun CoinGridSection(
+    coinProducts: List<CoinProduct>,
+    adCooldown: Long,
+    onWatchAd: () -> Unit,
+    onBuyProduct: (CoinProduct) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(text = "COIN PACKS", style = MaterialTheme.typography.titleSmall, color = CyberCyan)
+
+        val itemsPerRow = 2
+        val totalItems = coinProducts.size + 1
+        val rows = (totalItems + itemsPerRow - 1) / itemsPerRow
+
+        for (i in 0 until rows) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                for (j in 0 until itemsPerRow) {
+                    val index = i * itemsPerRow + j
+                    if (index == 0) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            AdRewardCard(adCooldown, onWatchAd)
+                        }
+                    } else if (index - 1 < coinProducts.size) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            CoinCard(coinProducts[index - 1], onBuyProduct)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun AdRewardCard(cooldown: Long, onWatchAd: () -> Unit) {
+    val isAvailable = cooldown == 0L
+    NeonCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        color = if (isAvailable) GoldCoin else Color.Gray
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Icon(
-                imageVector = item.icon,
+                imageVector = Icons.Rounded.Tv,
                 contentDescription = null,
-                tint = item.color,
-                modifier = Modifier.size(48.dp)
+                tint = if (isAvailable) GoldCoin else Color.Gray,
+                modifier = Modifier.size(40.dp)
             )
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = item.name, style = MaterialTheme.typography.titleMedium, color = Color.White)
-                Text(
-                    text = item.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.6f),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
+            Text(
+                text = "WATCH AD",
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
 
-            GlowButton(
-                text = if (item.isIAP) "$${item.price / 100.0}" else "${item.price}",
+            Text(
+                text = if (isAvailable) "REWARD: 50 COINS" else "WAIT: ${formatTime(cooldown)}",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isAvailable) CyberCyan else Color.Gray,
+                fontSize = 8.sp,
+                textAlign = TextAlign.Center
+            )
+
+            NeonButton(
+                text = if (isAvailable) "WATCH" else "LOCKED",
+                onClick = onWatchAd,
+                modifier = Modifier.fillMaxWidth(),
+                color = if (isAvailable) GoldCoin else Color.Gray
+            )
+        }
+    }
+}
+
+@Composable
+fun CoinCard(product: CoinProduct, onBuy: (CoinProduct) -> Unit) {
+    NeonCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        color = CyberCyan
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(
+                imageVector = getCoinIcon(product.coins),
+                contentDescription = null,
+                tint = GoldCoin,
+                modifier = Modifier.size(40.dp)
+            )
+
+            Text(
+                text = product.name,
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+
+            Text(
+                text = "UNLOCK BOOSTS!",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.5f),
+                fontSize = 7.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 10.sp
+            )
+
+            NeonButton(
+                text = product.price,
+                onClick = { onBuy(product) },
+                modifier = Modifier.fillMaxWidth(),
+                color = CyberCyan
+            )
+        }
+    }
+}
+
+@Composable
+fun UpgradeSection(onBuyUpgrade: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(text = "BOOSTS", style = MaterialTheme.typography.titleSmall, color = GoldCoin)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            item {
+                UpgradeCard(
+                    id = "hint",
+                    name = "SHOW GOAL",
+                    price = 300,
+                    icon = Icons.Rounded.Lightbulb,
+                    color = GoldCoin
+                ) { onBuyUpgrade("hint") }
+            }
+            item {
+                UpgradeCard(
+                    id = "undo",
+                    name = "REVERSE MOVE",
+                    price = 150,
+                    icon = Icons.AutoMirrored.Rounded.Undo,
+                    color = CyberCyan
+                ) { onBuyUpgrade("undo") }
+            }
+        }
+    }
+}
+
+@Composable
+fun UpgradeCard(
+    id: String,
+    name: String,
+    price: Int,
+    icon: ImageVector,
+    color: Color,
+    onBuy: () -> Unit
+) {
+    NeonCard(
+        modifier = Modifier
+            .width(160.dp)
+            .height(180.dp),
+        color = color
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(icon, null, tint = color, modifier = Modifier.size(32.dp))
+            Text(
+                name,
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+            NeonButton(
+                text = "$price",
                 onClick = onBuy,
-                color = item.color,
+                color = color,
                 modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
-@Preview
+fun getCoinIcon(amount: Int): ImageVector {
+    return when {
+        amount <= 500 -> Icons.Rounded.MonetizationOn
+        amount <= 1500 -> Icons.Rounded.Savings
+        else -> Icons.Rounded.Diamond
+    }
+}
+
+fun formatTime(seconds: Long): String {
+    val m = seconds / 60
+    val s = seconds % 60
+    return "%02d:%02d".format(m, s)
+}
+
+@Preview(showBackground = true)
 @Composable
-fun ShopPreview() {
-    EchoMazeTheme {
-        ShopScreen(1250, {}, {}, {}, {})
+fun ShopScreenPreview() {
+    AppTheme {
+        ShopScreen(
+            coinBalance = 500,
+            isStoreAvailable = true,
+            coinProducts = listOf(
+                CoinProduct("coins_100", "100 Coins", "Description", "$0.29", 100),
+                CoinProduct("coins_500", "500 Coins", "Description", "$0.49", 500)
+            ),
+            adCooldown = 0L,
+            onBackClick = {},
+            onWatchAd = {},
+            onBuyProduct = {},
+            onBuyUpgrade = {},
+            onRestorePurchases = {}
+        )
     }
 }

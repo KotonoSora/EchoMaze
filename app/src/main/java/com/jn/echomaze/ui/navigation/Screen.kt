@@ -1,16 +1,23 @@
 package com.jn.echomaze.ui.navigation
 
 sealed class Screen(val route: String) {
-    object MainMenu : Screen("main_menu")
-    object LevelSelect : Screen("level_select")
-    object Gameplay : Screen("gameplay/{levelId}") {
+    data object Home : Screen("home")
+    data object LevelSelect : Screen("level_select")
+    data object Gameplay : Screen("gameplay/{levelId}") {
         fun createRoute(levelId: Int) = "gameplay/$levelId"
     }
-    object Pause : Screen("pause")
-    object LevelComplete : Screen("level_complete/{levelId}/{score}/{coins}") {
-        fun createRoute(levelId: Int, score: Int, coins: Int) = "level_complete/$levelId/$score/$coins"
+
+    data object Pause : Screen("pause")
+    data object LevelComplete : Screen("level_complete/{levelId}/{score}/{coins}") {
+        fun createRoute(levelId: Int, score: Int, coins: Int) =
+            "level_complete/$levelId/$score/$coins"
     }
-    object GameOver : Screen("game_over")
-    object Shop : Screen("shop")
-    object Settings : Screen("settings")
+
+    data object GameOver : Screen("game_over")
+    data object Shop : Screen("shop")
+    data object Settings : Screen("settings")
+    data object Leaderboard : Screen("leaderboard")
+    data object DailyChallenge : Screen("daily_challenge")
+    data object Help : Screen("help")
+    data object SkinsShop : Screen("skins_shop")
 }
