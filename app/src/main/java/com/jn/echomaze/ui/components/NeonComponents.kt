@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,10 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jn.echomaze.ui.theme.CyberCyan
@@ -92,49 +94,67 @@ fun NeonScaffold(
 
 @Composable
 fun NeonButton(
-    text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = CyberCyan,
-    icon: ImageVector? = null
+    cornerRadius: Dp = 8.dp,
+    glowRadius: Dp = 16.dp,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+    content: @Composable RowScope.() -> Unit
 ) {
     Surface(
         modifier = modifier
-            .glow(color = color, borderRadius = 8.dp, blurRadius = 16.dp, offsetY = 2.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .glow(
+                color = color,
+                borderRadius = cornerRadius,
+                blurRadius = glowRadius,
+                offsetY = 2.dp
+            )
+            .clip(RoundedCornerShape(cornerRadius))
             .clickable(onClick = onClick),
         color = Color.Black.copy(alpha = 0.7f),
         border = BorderStroke(2.dp, color)
     ) {
         Row(
             modifier = Modifier
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(color.copy(alpha = 0.4f), Color.Transparent)
-                    )
-                )
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(contentPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-            Text(
-                text = text.uppercase(),
-                color = color,
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
-                )
+            horizontalArrangement = Arrangement.Center,
+            content = content
+        )
+    }
+}
+
+@Composable
+fun NeonButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = CyberCyan,
+    icon: ImageVector? = null
+) {
+    NeonButton(
+        onClick = onClick,
+        modifier = modifier,
+        color = color
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(20.dp)
             )
+            Spacer(modifier = Modifier.width(12.dp))
         }
+        Text(
+            text = text.uppercase(),
+            color = color,
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp
+            )
+        )
     }
 }
 
@@ -142,17 +162,25 @@ fun NeonButton(
 fun NeonCard(
     modifier: Modifier = Modifier,
     color: Color = NeonPurple,
+    cornerRadius: Dp = 12.dp,
+    glowRadius: Dp = 16.dp,
+    contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
         modifier = modifier
-            .glow(color = color, borderRadius = 12.dp, blurRadius = 16.dp, alpha = 0.2f),
-        shape = RoundedCornerShape(12.dp),
+            .glow(
+                color = color,
+                borderRadius = cornerRadius,
+                blurRadius = glowRadius,
+                alpha = 0.2f
+            ),
+        shape = RoundedCornerShape(cornerRadius),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
         border = BorderStroke(2.dp, color.copy(alpha = 0.5f))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(contentPadding),
             content = content
         )
     }
@@ -182,13 +210,30 @@ fun NeonTitle(
     color: Color = Color.White,
     fontSize: androidx.compose.ui.unit.TextUnit = 24.sp
 ) {
-    Text(
+    NeonText(
         text = text.uppercase(),
-        modifier = modifier.glow(color, alpha = 0.4f),
+        modifier = modifier,
         style = MaterialTheme.typography.displaySmall.copy(
             color = color,
             fontSize = fontSize,
             letterSpacing = 2.sp
-        )
+        ),
+        color = color,
+        glowRadius = 8.dp
+    )
+}
+
+@Composable
+fun NeonText(
+    text: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = TextStyle.Default,
+    color: Color = Color.White,
+    glowRadius: Dp = 4.dp
+) {
+    Text(
+        text = text,
+        modifier = modifier.glow(color, alpha = 0.8f, blurRadius = glowRadius),
+        style = style.copy(color = color)
     )
 }

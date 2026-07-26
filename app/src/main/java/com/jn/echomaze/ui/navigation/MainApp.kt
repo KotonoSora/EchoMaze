@@ -70,8 +70,10 @@ fun MainApp() {
 
         composable(route = Screen.LevelSelect.route) {
             val levels by gameplayViewModel.levels.collectAsState()
+            val coinBalance by gameplayViewModel.coinBalance.collectAsState()
             LevelSelectScreen(
                 levels = levels,
+                coinBalance = coinBalance,
                 onLevelClick = { levelId ->
                     gameplayViewModel.startLevel(levelId)
                     navController.navigate(Screen.Gameplay.createRoute(levelId))
@@ -107,7 +109,9 @@ fun MainApp() {
         }
 
         composable(route = Screen.DailyChallenge.route) {
+            val coinBalance by gameplayViewModel.coinBalance.collectAsState()
             DailyChallengeScreen(
+                coinBalance = coinBalance,
                 onBackClick = { navController.popBackStack() },
                 onPlayClick = {
                     gameplayViewModel.startLevel(0, isDaily = true)
@@ -122,8 +126,10 @@ fun MainApp() {
             val topScores by viewModel.topScores.collectAsState()
             val myHistory by viewModel.myHistory.collectAsState()
             val achievements by viewModel.achievements.collectAsState()
+            val coinBalance by viewModel.coinBalance.collectAsState()
 
             LeaderboardScreen(
+                coinBalance = coinBalance,
                 onBackClick = { navController.popBackStack() },
                 topScores = topScores,
                 myHistory = myHistory,
@@ -239,7 +245,9 @@ fun MainApp() {
         }
 
         composable(route = Screen.Help.route) {
+            val coinBalance by gameplayViewModel.coinBalance.collectAsState()
             HelpScreen(
+                coinBalance = coinBalance,
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -247,8 +255,10 @@ fun MainApp() {
         composable(route = Screen.Settings.route) {
             val viewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
             val stats by viewModel.stats.collectAsState()
+            val coinBalance by viewModel.coinBalance.collectAsState()
             SettingsScreen(
                 stats = stats,
+                coinBalance = coinBalance,
                 onBackClick = { navController.popBackStack() }
             )
         }

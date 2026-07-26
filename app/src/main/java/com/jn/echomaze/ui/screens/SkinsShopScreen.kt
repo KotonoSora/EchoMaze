@@ -2,7 +2,6 @@ package com.jn.echomaze.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,10 +14,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.Lightbulb
-import androidx.compose.material.icons.rounded.MonetizationOn
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,11 +29,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
 import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
-import com.jn.echomaze.ui.components.NeonTitle
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.GoldCoin
@@ -50,38 +47,12 @@ fun SkinsShopScreen(
 ) {
     NeonScaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButtonGlow(
-                    icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    onClick = onBackClick
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = coinBalance.toString(),
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Icon(
-                        imageVector = Icons.Rounded.MonetizationOn,
-                        contentDescription = null,
-                        tint = GoldCoin,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
+            HeaderBar(
+                variant = HeaderVariant.STANDARD,
+                title = "BOUTIQUE",
+                coinBalance = coinBalance,
+                onBackClick = onBackClick
+            )
         }
     ) { _ ->
         Column(
@@ -90,7 +61,7 @@ fun SkinsShopScreen(
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            NeonTitle(text = "BOUTIQUE", fontSize = 32.sp)
+            // NeonTitle is now in HeaderBar
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "CUSTOMIZE YOUR EXPERIENCE",

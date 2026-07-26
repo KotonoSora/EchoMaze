@@ -13,4 +13,7 @@ class SettingsViewModel(
 ) : ViewModel() {
     val stats: StateFlow<UserStats?> = gameRepository.getGameStats()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val coinBalance: StateFlow<Int> = gameRepository.getCoinBalance()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 }

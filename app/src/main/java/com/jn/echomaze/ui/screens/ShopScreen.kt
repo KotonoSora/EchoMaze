@@ -1,7 +1,5 @@
 package com.jn.echomaze.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,10 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Diamond
@@ -34,7 +30,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
@@ -42,11 +37,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jn.echomaze.billing.CoinProduct
-import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
 import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
-import com.jn.echomaze.ui.components.NeonTitle
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.GoldCoin
@@ -66,41 +61,12 @@ fun ShopScreen(
 ) {
     NeonScaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButtonGlow(
-                    icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    onClick = onBackClick
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                        .border(1.dp, GoldCoin.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = coinBalance.toString(),
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Icon(
-                        imageVector = Icons.Rounded.MonetizationOn,
-                        contentDescription = null,
-                        tint = GoldCoin,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
+            HeaderBar(
+                variant = HeaderVariant.STANDARD,
+                title = "TREASURY",
+                coinBalance = coinBalance,
+                onBackClick = onBackClick
+            )
         }
     ) { _ ->
         Column(
@@ -113,7 +79,11 @@ fun ShopScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                NeonTitle(text = "TREASURY", fontSize = 32.sp)
+                // HeaderBar already has title, but this screen has it inside Column too.
+                // I'll keep the text inside but maybe remove NeonTitle from HeaderBar if it feels redundant?
+                // The requirement says "other screen always have header bar with back icon, title on left, number of coins on right"
+                // So I'll remove the redundant NeonTitle from the Column.
+                Spacer(modifier = Modifier.height(0.dp))
                 TextButton(onClick = onRestorePurchases) {
                     Text("RESTORE", color = CyberCyan, style = MaterialTheme.typography.labelSmall)
                 }

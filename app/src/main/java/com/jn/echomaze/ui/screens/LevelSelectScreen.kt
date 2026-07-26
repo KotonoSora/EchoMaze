@@ -10,18 +10,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
@@ -35,9 +31,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.jn.echomaze.domain.model.Level
-import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.glow
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
@@ -47,6 +43,7 @@ import com.jn.echomaze.ui.theme.PressStart2P
 @Composable
 fun LevelSelectScreen(
     levels: List<Level>,
+    coinBalance: Int,
     onLevelClick: (Int) -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -54,29 +51,13 @@ fun LevelSelectScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .systemBarsPadding()
-            .padding(24.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButtonGlow(
-                icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Back",
-                onClick = onBackClick
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = "SELECT\nLEVEL",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp,
-                    fontFamily = PressStart2P
-                ),
-                color = Color.White
-            )
-        }
+        HeaderBar(
+            variant = HeaderVariant.STANDARD,
+            title = "SELECT LEVEL",
+            coinBalance = coinBalance,
+            onBackClick = onBackClick
+        )
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -84,7 +65,9 @@ fun LevelSelectScreen(
             columns = GridCells.Fixed(3),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 8.dp)
         ) {
             items(items = levels, key = { level -> level.id }) { level ->
                 LevelItem(level = level, onClick = { if (level.isUnlocked) onLevelClick(level.id) })
@@ -154,6 +137,7 @@ fun LevelSelectPreview() {
                 Level(4, 4, 0, false),
                 Level(5, 5, 0, false)
             ),
+            coinBalance = 500,
             onLevelClick = {},
             onBackClick = {}
         )

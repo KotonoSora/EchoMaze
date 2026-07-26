@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.MonetizationOn
@@ -24,12 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
 import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
-import com.jn.echomaze.ui.components.NeonTitle
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.GoldCoin
@@ -37,26 +35,19 @@ import com.jn.echomaze.ui.theme.NeonPurple
 
 @Composable
 fun DailyChallengeScreen(
+    coinBalance: Int,
     onBackClick: () -> Unit,
     onPlayClick: () -> Unit,
     isAlreadyCompleted: Boolean
 ) {
     NeonScaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButtonGlow(
-                    icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    onClick = onBackClick
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                NeonTitle(text = "DAILY CHALLENGE", fontSize = 20.sp)
-            }
+            HeaderBar(
+                variant = HeaderVariant.STANDARD,
+                title = "DAILY CHALLENGE",
+                coinBalance = coinBalance,
+                onBackClick = onBackClick
+            )
         }
     ) { padding ->
         Column(
@@ -148,6 +139,7 @@ fun DailyChallengeScreen(
 fun DailyChallengeScreenPreview() {
     AppTheme {
         DailyChallengeScreen(
+            coinBalance = 500,
             onBackClick = {},
             onPlayClick = {},
             isAlreadyCompleted = false

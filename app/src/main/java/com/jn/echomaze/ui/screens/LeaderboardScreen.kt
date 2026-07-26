@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MonetizationOn
 import androidx.compose.material.icons.rounded.Stars
 import androidx.compose.material3.Icon
@@ -39,10 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jn.echomaze.domain.model.Achievement
 import com.jn.echomaze.domain.model.GameHistory
-import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
-import com.jn.echomaze.ui.components.NeonTitle
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.GoldCoin
@@ -52,6 +50,7 @@ import java.util.Date
 
 @Composable
 fun LeaderboardScreen(
+    coinBalance: Int,
     onBackClick: () -> Unit,
     topScores: List<GameHistory>,
     myHistory: List<GameHistory>,
@@ -63,20 +62,12 @@ fun LeaderboardScreen(
     NeonScaffold(
         topBar = {
             Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButtonGlow(
-                        icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "Back",
-                        onClick = onBackClick
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    NeonTitle(text = "STATISTICS", fontSize = 20.sp)
-                }
+                HeaderBar(
+                    variant = HeaderVariant.STANDARD,
+                    title = "STATISTICS",
+                    coinBalance = coinBalance,
+                    onBackClick = onBackClick
+                )
 
                 TabRow(
                     selectedTabIndex = selectedTab,
@@ -269,6 +260,7 @@ fun HistoryItem(record: GameHistory) {
 fun LeaderboardScreenPreview() {
     AppTheme {
         LeaderboardScreen(
+            coinBalance = 500,
             onBackClick = {},
             topScores = listOf(
                 GameHistory(1, System.currentTimeMillis(), 1200, 30, 50, 1),

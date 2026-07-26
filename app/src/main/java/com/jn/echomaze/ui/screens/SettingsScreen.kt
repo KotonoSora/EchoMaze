@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.Icon
@@ -31,12 +30,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.jn.echomaze.domain.model.UserStats
-import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
-import com.jn.echomaze.ui.components.NeonTitle
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.NeonPurple
@@ -44,6 +42,7 @@ import com.jn.echomaze.ui.theme.NeonPurple
 @Composable
 fun SettingsScreen(
     stats: UserStats?,
+    coinBalance: Int,
     onBackClick: () -> Unit
 ) {
     var soundEnabled by remember { mutableStateOf(true) }
@@ -51,20 +50,12 @@ fun SettingsScreen(
 
     NeonScaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButtonGlow(
-                    icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    onClick = onBackClick
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                NeonTitle(text = "SETTINGS", fontSize = 24.sp)
-            }
+            HeaderBar(
+                variant = HeaderVariant.STANDARD,
+                title = "SETTINGS",
+                coinBalance = coinBalance,
+                onBackClick = onBackClick
+            )
         }
     ) { padding ->
         Column(
@@ -180,6 +171,7 @@ fun SettingsPreview() {
     AppTheme {
         SettingsScreen(
             stats = UserStats(3600000, 10, 50, 1000, 500, 2500, 0, 0),
+            coinBalance = 500,
             onBackClick = {}
         )
     }

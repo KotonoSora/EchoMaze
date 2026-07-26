@@ -18,14 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Numbers
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,13 +40,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
 import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
-import com.jn.echomaze.ui.theme.GoldCoin
 import com.jn.echomaze.ui.theme.NeonPink
 import com.jn.echomaze.ui.theme.NeonYellow
 
@@ -72,65 +69,14 @@ fun GameplayScreen(
 ) {
     NeonScaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = if (levelId == 0) "DAILY" else "LEVEL",
-                        color = Color.White.copy(alpha = 0.6f),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                    Text(
-                        text = if (levelId == 0) "CHALLENGE" else levelId.toString()
-                            .padStart(2, '0'),
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        )
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Quick Buy Coins
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                            .border(1.dp, GoldCoin.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                            .clickable { onQuickBuyCoins() }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "$coins",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = "Buy Coins",
-                            tint = GoldCoin,
-                            modifier = Modifier.size(14.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    IconButtonGlow(
-                        icon = Icons.Rounded.Pause,
-                        contentDescription = "Pause",
-                        onClick = onPauseClick,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            }
+            HeaderBar(
+                variant = HeaderVariant.GAMEPLAY,
+                title = if (levelId == 0) "DAILY" else levelId.toString().padStart(2, '0'),
+                coinBalance = coins,
+                onCoinsClick = onQuickBuyCoins,
+                onActionClick = onPauseClick,
+                actionIcon = Icons.Rounded.Pause
+            )
         }
     ) { paddingValues ->
         Column(

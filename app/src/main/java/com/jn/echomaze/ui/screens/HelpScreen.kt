@@ -1,18 +1,15 @@
 package com.jn.echomaze.ui.screens
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.MonetizationOn
 import androidx.compose.material.icons.rounded.TouchApp
@@ -28,11 +25,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jn.echomaze.ui.components.IconButtonGlow
+import com.jn.echomaze.ui.components.HeaderBar
+import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
 import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
-import com.jn.echomaze.ui.components.NeonTitle
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.GoldCoin
@@ -40,24 +37,17 @@ import com.jn.echomaze.ui.theme.NeonPurple
 
 @Composable
 fun HelpScreen(
+    coinBalance: Int,
     onBackClick: () -> Unit
 ) {
     NeonScaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButtonGlow(
-                    icon = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    onClick = onBackClick
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                NeonTitle(text = "HOW TO PLAY", fontSize = 20.sp)
-            }
+            HeaderBar(
+                variant = HeaderVariant.STANDARD,
+                title = "HOW TO PLAY",
+                coinBalance = coinBalance,
+                onBackClick = onBackClick
+            )
         }
     ) { _ ->
         Column(
@@ -146,6 +136,6 @@ fun HelpSection(
 @Composable
 fun HelpScreenPreview() {
     AppTheme {
-        HelpScreen(onBackClick = {})
+        HelpScreen(coinBalance = 500, onBackClick = {})
     }
 }

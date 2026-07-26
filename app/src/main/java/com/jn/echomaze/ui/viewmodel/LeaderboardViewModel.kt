@@ -21,4 +21,7 @@ class LeaderboardViewModel(
 
     val achievements: StateFlow<List<Achievement>> = gameRepository.getAllAchievements()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val coinBalance: StateFlow<Int> = gameRepository.getCoinBalance()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 }
