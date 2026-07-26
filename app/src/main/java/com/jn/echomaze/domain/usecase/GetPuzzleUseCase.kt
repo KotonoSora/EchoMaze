@@ -4,7 +4,7 @@ import com.jn.echomaze.domain.model.Puzzle
 import kotlin.random.Random
 
 class GetPuzzleUseCase {
-    operator fun invoke(gridSize: Int, seed: Int): Puzzle {
+    operator fun invoke(gridSize: Int, seed: Int, imageRes: Int? = null): Puzzle {
         val random = Random(seed)
         val initialTiles = (1 until gridSize * gridSize).toList() + listOf(0)
 
@@ -28,7 +28,8 @@ class GetPuzzleUseCase {
             tiles = tiles,
             gridSize = gridSize,
             moves = 0,
-            isSolved = false
+            isSolved = false,
+            imageRes = imageRes
         )
     }
 

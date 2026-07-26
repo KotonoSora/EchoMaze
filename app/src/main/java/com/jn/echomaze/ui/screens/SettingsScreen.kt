@@ -32,7 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jn.echomaze.data.StatsEntity
+import com.jn.echomaze.domain.model.UserStats
 import com.jn.echomaze.ui.components.IconButtonGlow
 import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
@@ -43,7 +43,7 @@ import com.jn.echomaze.ui.theme.NeonPurple
 
 @Composable
 fun SettingsScreen(
-    stats: StatsEntity?,
+    stats: UserStats?,
     onBackClick: () -> Unit
 ) {
     var soundEnabled by remember { mutableStateOf(true) }
@@ -179,7 +179,7 @@ fun StatRow(label: String, value: String) {
 fun SettingsPreview() {
     AppTheme {
         SettingsScreen(
-            stats = StatsEntity(1, 3600000, 10, 50, 1000, 500, 2500, 0, 0),
+            stats = UserStats(3600000, 10, 50, 1000, 500, 2500, 0, 0),
             onBackClick = {}
         )
     }

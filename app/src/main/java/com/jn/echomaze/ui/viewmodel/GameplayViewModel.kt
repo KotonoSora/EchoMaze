@@ -50,6 +50,12 @@ class GameplayViewModel(
     var isDailyChallenge by mutableStateOf(false)
         private set
 
+    var showNumbersHint by mutableStateOf(false)
+        private set
+
+    var showPreviewHint by mutableStateOf(false)
+        private set
+
     val levels: StateFlow<List<Level>> = gameRepository.getAllLevels()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -64,6 +70,8 @@ class GameplayViewModel(
         timeElapsedSeconds = 0L
         isPaused = false
         gameOverTriggered = false
+        showNumbersHint = false
+        showPreviewHint = false
 
         gridSize = when {
             isDaily -> 4
@@ -73,10 +81,28 @@ class GameplayViewModel(
         }
 
         puzzle = getPuzzleUseCase(
-            gridSize,
-            if (isDaily) (System.currentTimeMillis() / 86400000).toInt() else levelId
+            gridSize = gridSize,
+            seed = if (isDaily) (System.currentTimeMillis() / 86400000).toInt() else levelId,
+            imageRes = com.jn.echomaze.R.drawable.ic_echomaze_foreground_img
         )
         startTimer()
+        soundManager.playClick()
+    }
+
+    fun toggleNumbersHint() {
+        if (coinBalance.value >= 10 || showNumbersHint) {
+            if (!showNumbersHint) {
+                viewModelScope.launch {
+                    gameRepository.updateCoinBalance(coinBalance.value - 10)
+                }
+            }
+            showNumbersHint = !showNumbersHint
+            soundManager.playClick()
+        }
+    }
+
+    fun togglePreviewHint() {
+        showPreviewHint = !showPreviewHint
         soundManager.playClick()
     }
 

@@ -17,16 +17,18 @@ import com.jn.echomaze.ui.screens.DailyChallengeScreen
 import com.jn.echomaze.ui.screens.GameOverScreen
 import com.jn.echomaze.ui.screens.GameplayScreen
 import com.jn.echomaze.ui.screens.HelpScreen
-import com.jn.echomaze.ui.screens.LeaderboardScreen
 import com.jn.echomaze.ui.screens.HomeScreen
+import com.jn.echomaze.ui.screens.LeaderboardScreen
 import com.jn.echomaze.ui.screens.LevelCompleteScreen
 import com.jn.echomaze.ui.screens.LevelSelectScreen
 import com.jn.echomaze.ui.screens.PauseScreen
+import com.jn.echomaze.ui.screens.SettingsScreen
 import com.jn.echomaze.ui.screens.ShopScreen
 import com.jn.echomaze.ui.screens.SkinsShopScreen
 import com.jn.echomaze.ui.viewmodel.GameplayViewModel
 import com.jn.echomaze.ui.viewmodel.HomeViewModel
 import com.jn.echomaze.ui.viewmodel.LeaderboardViewModel
+import com.jn.echomaze.ui.viewmodel.SettingsViewModel
 import com.jn.echomaze.ui.viewmodel.ShopViewModel
 
 @Composable
@@ -93,9 +95,14 @@ fun MainApp() {
                 maxMoves = gameplayViewModel.gridSize * gameplayViewModel.gridSize * 15,
                 gridSize = puzzle?.gridSize ?: 3,
                 tiles = puzzle?.tiles ?: emptyList(),
+                imageRes = puzzle?.imageRes,
+                showNumbersHint = gameplayViewModel.showNumbersHint,
+                showPreviewHint = gameplayViewModel.showPreviewHint,
                 onTileClick = { gameplayViewModel.handleTileClick(it) },
                 onPauseClick = { navController.navigate(Screen.Pause.route) },
-                onQuickBuyCoins = { navController.navigate(Screen.Shop.route) }
+                onQuickBuyCoins = { navController.navigate(Screen.Shop.route) },
+                onHintNumbersClick = { gameplayViewModel.toggleNumbersHint() },
+                onHintPreviewClick = { gameplayViewModel.togglePreviewHint() }
             )
         }
 
@@ -233,6 +240,15 @@ fun MainApp() {
 
         composable(route = Screen.Help.route) {
             HelpScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.Settings.route) {
+            val viewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
+            val stats by viewModel.stats.collectAsState()
+            SettingsScreen(
+                stats = stats,
                 onBackClick = { navController.popBackStack() }
             )
         }

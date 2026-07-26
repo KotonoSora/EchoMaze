@@ -145,9 +145,11 @@ fun LeaderboardScreen(
 
 @Composable
 fun EmptyState(message: String) {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(200.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp), contentAlignment = Alignment.Center
+    ) {
         Text(text = message, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
     }
 }

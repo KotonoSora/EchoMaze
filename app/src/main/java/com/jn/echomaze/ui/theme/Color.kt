@@ -13,5 +13,10 @@ val PrimaryDark = CyberCyan
 val SecondaryDark = NeonPurple
 val TertiaryDark = ElectricBlue
 
+val NeonPink = Color(0xFFFF00FF)
+val NeonGreen = Color(0xFF39FF14)
+val NeonOrange = Color(0xFFFF5F1F)
+val NeonYellow = Color(0xFFFFF01F)
+
 val BackgroundDark = DeepSpace
 val SurfaceVariantDark = Color(0xFF1A1A3A)

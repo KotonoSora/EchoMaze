@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -28,6 +27,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -46,14 +47,43 @@ fun NeonScaffold(
     Scaffold(
         topBar = topBar,
         bottomBar = bottomBar,
-        containerColor = Color.Black,
-        modifier = Modifier.fillMaxSize()
+        containerColor = Color.Transparent, // Let the background show through
+        modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.safeDrawing // Scaffold handles safe areas
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black)
+                .drawBehind {
+                    val gridSize = 40.dp.toPx()
+                    val gridColor = Color(0xFF1A1A3A)
+
+                    // Vertical lines
+                    var x = 0f
+                    while (x < size.width) {
+                        drawLine(
+                            color = gridColor,
+                            start = Offset(x, 0f),
+                            end = Offset(x, size.height),
+                            strokeWidth = 1f
+                        )
+                        x += gridSize
+                    }
+
+                    // Horizontal lines
+                    var y = 0f
+                    while (y < size.height) {
+                        drawLine(
+                            color = gridColor,
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                            strokeWidth = 1f
+                        )
+                        y += gridSize
+                    }
+                }
                 .padding(innerPadding)
-                .windowInsetsPadding(WindowInsets.safeDrawing)
         ) {
             content(innerPadding)
         }
@@ -70,20 +100,20 @@ fun NeonButton(
 ) {
     Surface(
         modifier = modifier
-            .glow(color = color, borderRadius = 8.dp, blurRadius = 12.dp, offsetY = 4.dp)
+            .glow(color = color, borderRadius = 8.dp, blurRadius = 16.dp, offsetY = 2.dp)
             .clip(RoundedCornerShape(8.dp))
             .clickable(onClick = onClick),
-        color = Color.Black.copy(alpha = 0.6f),
+        color = Color.Black.copy(alpha = 0.7f),
         border = BorderStroke(2.dp, color)
     ) {
         Row(
             modifier = Modifier
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(color.copy(alpha = 0.3f), Color.Transparent)
+                        colors = listOf(color.copy(alpha = 0.4f), Color.Transparent)
                     )
                 )
-                .padding(horizontal = 24.dp, vertical = 14.dp),
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {

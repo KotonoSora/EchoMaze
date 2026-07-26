@@ -184,25 +184,21 @@ fun HomeScreen(
                     icon = Icons.Rounded.Leaderboard
                 )
 
-                Row(
+                NeonButton(
+                    text = "SKINS",
+                    onClick = onSkinsShopClick,
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    NeonButton(
-                        text = "SKINS",
-                        onClick = onSkinsShopClick,
-                        modifier = Modifier.weight(1f),
-                        color = ElectricBlue,
-                        icon = Icons.Rounded.Palette
-                    )
-                    NeonButton(
-                        text = "HELP",
-                        onClick = onHelpClick,
-                        modifier = Modifier.weight(1f),
-                        color = Color.White,
-                        icon = Icons.Rounded.QuestionMark
-                    )
-                }
+                    color = ElectricBlue,
+                    icon = Icons.Rounded.Palette
+                )
+
+                NeonButton(
+                    text = "HELP",
+                    onClick = onHelpClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.White,
+                    icon = Icons.Rounded.QuestionMark
+                )
 
                 NeonButton(
                     text = "SETTINGS",
