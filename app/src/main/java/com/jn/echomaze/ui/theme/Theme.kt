@@ -27,7 +27,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun EchoMazeTheme(
+fun AppTheme(
     darkTheme: Boolean = true, // Force dark theme for game aesthetic
     dynamicColor: Boolean = false, // Prefer our custom vibrant colors
     content: @Composable () -> Unit
@@ -37,6 +37,7 @@ fun EchoMazeTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         else -> DarkColorScheme
     }
 
