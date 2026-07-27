@@ -25,6 +25,7 @@ import com.jn.echomaze.ui.screens.PauseScreen
 import com.jn.echomaze.ui.screens.SettingsScreen
 import com.jn.echomaze.ui.screens.ShopScreen
 import com.jn.echomaze.ui.screens.SkinsShopScreen
+import com.jn.echomaze.ui.theme.GameTheme
 import com.jn.echomaze.ui.viewmodel.GameplayViewModel
 import com.jn.echomaze.ui.viewmodel.HomeViewModel
 import com.jn.echomaze.ui.viewmodel.LeaderboardViewModel
@@ -47,6 +48,24 @@ fun MainApp() {
         }
     }
 
+    // Observe Level Complete
+    LaunchedEffect(gameplayViewModel.levelCompleteTriggered) {
+        if (gameplayViewModel.levelCompleteTriggered) {
+            val score = gameplayViewModel.calculateScore()
+            val stars = gameplayViewModel.calculateStars()
+            val coins = if (gameplayViewModel.isDailyChallenge) 200 else (stars * 50)
+            navController.navigate(
+                Screen.LevelComplete.createRoute(
+                    gameplayViewModel.currentLevelId,
+                    score,
+                    coins,
+                    stars,
+                    gameplayViewModel.timeElapsedSeconds.toInt()
+                )
+            )
+        }
+    }
+
     NavHost(navController = navController, startDestination = Screen.Home.route) {
         composable(route = Screen.Home.route) {
             val viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
@@ -64,7 +83,9 @@ fun MainApp() {
                 onSkinsShopClick = { navController.navigate(Screen.SkinsShop.route) },
                 onHelpClick = { navController.navigate(Screen.Help.route) },
                 onSettingsClick = { navController.navigate(Screen.Settings.route) },
-                onShopClick = { navController.navigate(Screen.Shop.route) }
+                onShopClick = { navController.navigate(Screen.Shop.route) },
+                levelUpToCelebrate = viewModel.levelUpCelebration,
+                onDismissLevelUp = { viewModel.dismissLevelUp() }
             )
         }
 
@@ -88,18 +109,22 @@ fun MainApp() {
         ) { backStackEntry ->
             val levelId = backStackEntry.arguments?.getInt("levelId") ?: 1
             val coinBalance by gameplayViewModel.coinBalance.collectAsState()
+            val stats by gameplayViewModel.stats.collectAsState()
             val puzzle = gameplayViewModel.puzzle
+            val theme = GameTheme.getThemeById(stats?.selectedThemeId ?: "skin_neon")
 
             GameplayScreen(
                 levelId = levelId,
                 coins = coinBalance,
                 movesCount = puzzle?.moves ?: 0,
                 maxMoves = gameplayViewModel.gridSize * gameplayViewModel.gridSize * 15,
+                timeSeconds = gameplayViewModel.timeElapsedSeconds,
                 gridSize = puzzle?.gridSize ?: 3,
                 tiles = puzzle?.tiles ?: emptyList(),
                 imageRes = puzzle?.imageRes,
                 showNumbersHint = gameplayViewModel.showNumbersHint,
                 showPreviewHint = gameplayViewModel.showPreviewHint,
+                theme = theme,
                 onTileClick = { gameplayViewModel.handleTileClick(it) },
                 onPauseClick = { navController.navigate(Screen.Pause.route) },
                 onQuickBuyCoins = { navController.navigate(Screen.Shop.route) },
@@ -160,17 +185,25 @@ fun MainApp() {
             arguments = listOf(
                 navArgument("levelId") { type = NavType.IntType },
                 navArgument("score") { type = NavType.IntType },
-                navArgument("coins") { type = NavType.IntType }
+                navArgument("coins") { type = NavType.IntType },
+                navArgument("stars") { type = NavType.IntType },
+                navArgument("time") { type = NavType.IntType }
             )
         ) { backStackEntry ->
             val levelId = backStackEntry.arguments?.getInt("levelId") ?: 1
             val score = backStackEntry.arguments?.getInt("score") ?: 0
             val earnedCoins = backStackEntry.arguments?.getInt("coins") ?: 0
+            val stars = backStackEntry.arguments?.getInt("stars") ?: 0
+            val time = backStackEntry.arguments?.getInt("time") ?: 0
+            val stats by gameplayViewModel.stats.collectAsState()
 
             LevelCompleteScreen(
                 levelId = levelId,
                 score = score,
                 coinsEarned = earnedCoins,
+                stars = stars,
+                timeSeconds = time,
+                stats = stats,
                 onNextLevelClick = {
                     val nextLevel = levelId + 1
                     gameplayViewModel.startLevel(nextLevel)
@@ -223,7 +256,7 @@ fun MainApp() {
                     viewModel.purchaseCoinPack(activity, product)
                 },
                 onBuyUpgrade = { id ->
-                    viewModel.buyUpgrade(0, id)
+                    viewModel.buyUpgrade(id)
                 },
                 onRestorePurchases = {
                     viewModel.billingManager.restorePurchases()
@@ -234,12 +267,14 @@ fun MainApp() {
         composable(route = Screen.SkinsShop.route) {
             val viewModel: ShopViewModel = viewModel(factory = AppViewModelProvider.Factory)
             val coinBalance by viewModel.coinBalance.collectAsState()
+            val stats by gameplayViewModel.stats.collectAsState()
 
             SkinsShopScreen(
                 coinBalance = coinBalance,
+                stats = stats,
                 onBackClick = { navController.popBackStack() },
                 onBuyUpgrade = { id ->
-                    viewModel.buyUpgrade(0, id)
+                    viewModel.buyUpgrade(id)
                 }
             )
         }

@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jn.echomaze.domain.model.UserStats
 import com.jn.echomaze.ui.components.HeaderBar
 import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
@@ -42,9 +43,13 @@ import com.jn.echomaze.ui.theme.NeonPurple
 @Composable
 fun SkinsShopScreen(
     coinBalance: Int,
+    stats: UserStats? = null,
     onBackClick: () -> Unit,
     onBuyUpgrade: (String) -> Unit
 ) {
+    val ownedSkins = stats?.ownedSkinIds ?: setOf("skin_neon")
+    val selectedSkin = stats?.selectedThemeId ?: "skin_neon"
+
     NeonScaffold(
         topBar = {
             HeaderBar(
@@ -100,7 +105,7 @@ fun SkinsShopScreen(
                         "skin_neon",
                         "NEON BLUE",
                         "The classic grid look.",
-                        500,
+                        0,
                         Icons.Rounded.Palette,
                         CyberCyan
                     ),
@@ -120,7 +125,10 @@ fun SkinsShopScreen(
                         Icons.Rounded.Palette,
                         Color.Green
                     )
-                ), onBuyUpgrade
+                ), 
+                onBuyUpgrade,
+                ownedSkins,
+                selectedSkin
             )
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -141,7 +149,9 @@ data class SkinItem(
 fun SkinsSection(
     title: String,
     items: List<SkinItem>,
-    onBuy: (String) -> Unit
+    onBuy: (String) -> Unit,
+    ownedSkins: Set<String> = emptySet(),
+    selectedSkin: String = ""
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(text = title, style = MaterialTheme.typography.titleSmall, color = Color.White)
@@ -149,19 +159,29 @@ fun SkinsSection(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(items) { item ->
-                SkinCard(item = item, onBuy = { onBuy(item.id) })
+                SkinCard(
+                    item = item,
+                    isOwned = ownedSkins.contains(item.id),
+                    isSelected = selectedSkin == item.id,
+                    onBuy = { onBuy(item.id) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun SkinCard(item: SkinItem, onBuy: () -> Unit) {
+fun SkinCard(
+    item: SkinItem,
+    isOwned: Boolean = false,
+    isSelected: Boolean = false,
+    onBuy: () -> Unit
+) {
     NeonCard(
         modifier = Modifier
             .width(180.dp)
             .height(220.dp),
-        color = item.color
+        color = if (isSelected) GoldCoin else item.color
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -188,10 +208,16 @@ fun SkinCard(item: SkinItem, onBuy: () -> Unit) {
                 )
             }
 
+            val buttonText = when {
+                isSelected -> "SELECTED"
+                isOwned -> "SELECT"
+                else -> "${item.price}"
+            }
+
             NeonButton(
-                text = "${item.price}",
+                text = buttonText,
                 onClick = onBuy,
-                color = item.color,
+                color = if (isSelected) GoldCoin else item.color,
                 modifier = Modifier.fillMaxWidth()
             )
         }

@@ -15,5 +15,9 @@ data class StatsEntity(
     val lastDailyRewardClaimed: Long = 0,
     val lastDailyChallengeCompleted: Long = 0,
     val loginStreak: Int = 1,
-    val lastLoginTimestamp: Long = System.currentTimeMillis()
+    val lastLoginTimestamp: Long = System.currentTimeMillis(),
+    val hintsUsed: Int = 0,
+    val selectedThemeId: String = "skin_neon",
+    val ownedSkinIdsRaw: String = "skin_neon",
+    val lastCelebratedLevel: Int = 1
 )

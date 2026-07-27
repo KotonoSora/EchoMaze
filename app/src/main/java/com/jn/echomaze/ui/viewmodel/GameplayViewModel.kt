@@ -9,15 +9,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jn.echomaze.domain.model.Level
 import com.jn.echomaze.domain.model.Puzzle
+import com.jn.echomaze.domain.model.UserStats
 import com.jn.echomaze.domain.repository.GameRepository
 import com.jn.echomaze.domain.usecase.GetPuzzleUseCase
 import com.jn.echomaze.domain.usecase.HandleMoveUseCase
 import com.jn.echomaze.domain.usecase.ProcessLevelCompletionUseCase
 import com.jn.echomaze.engine.SoundManager
+import kotlin.random.Random
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -47,6 +50,9 @@ class GameplayViewModel(
     var gameOverTriggered by mutableStateOf(false)
         private set
 
+    var levelCompleteTriggered by mutableStateOf(false)
+        private set
+
     var isDailyChallenge by mutableStateOf(false)
         private set
 
@@ -62,6 +68,17 @@ class GameplayViewModel(
     val coinBalance: StateFlow<Int> = gameRepository.getCoinBalance()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    val stats: StateFlow<UserStats?> = gameRepository.getGameStats()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private val puzzleImages = listOf(
+        com.jn.echomaze.R.drawable.assets_1,
+        com.jn.echomaze.R.drawable.assets_2,
+        com.jn.echomaze.R.drawable.assets_3,
+        com.jn.echomaze.R.drawable.assets_4,
+        com.jn.echomaze.R.drawable.assets_5
+    )
+
     private var timerJob: Job? = null
 
     fun startLevel(levelId: Int, isDaily: Boolean = false) {
@@ -70,20 +87,20 @@ class GameplayViewModel(
         timeElapsedSeconds = 0L
         isPaused = false
         gameOverTriggered = false
+        levelCompleteTriggered = false
         showNumbersHint = false
         showPreviewHint = false
 
-        gridSize = when {
-            isDaily -> 4
-            levelId <= 5 -> 3
-            levelId <= 15 -> 4
-            else -> 5
-        }
+        gridSize = 3 // Enforce 3x3 as requested for "9 parts"
+
+        val seed = if (isDaily) (System.currentTimeMillis() / 86400000).toInt() else levelId
+        val random = Random(seed)
+        val randomImage = puzzleImages[random.nextInt(puzzleImages.size)]
 
         puzzle = getPuzzleUseCase(
             gridSize = gridSize,
-            seed = if (isDaily) (System.currentTimeMillis() / 86400000).toInt() else levelId,
-            imageRes = com.jn.echomaze.R.drawable.ic_echomaze_foreground_img
+            seed = seed,
+            imageRes = randomImage
         )
         startTimer()
         soundManager.playClick()
@@ -94,6 +111,8 @@ class GameplayViewModel(
             if (!showNumbersHint) {
                 viewModelScope.launch {
                     gameRepository.updateCoinBalance(coinBalance.value - 10)
+                    val currentStats = gameRepository.getGameStats().first() ?: UserStats()
+                    gameRepository.updateStats(currentStats.copy(hintsUsed = currentStats.hintsUsed + 1))
                 }
             }
             showNumbersHint = !showNumbersHint
@@ -144,6 +163,7 @@ class GameplayViewModel(
 
     private fun onLevelComplete() {
         soundManager.playWin()
+        levelCompleteTriggered = true
         viewModelScope.launch {
             val stars = calculateStars()
             processLevelCompletionUseCase(
@@ -151,12 +171,13 @@ class GameplayViewModel(
                 score = calculateScore(),
                 moves = puzzle?.moves ?: 0,
                 stars = stars,
+                timeSeconds = timeElapsedSeconds.toInt(),
                 isDailyChallenge = isDailyChallenge
             )
         }
     }
 
-    private fun calculateStars(): Int {
+    fun calculateStars(): Int {
         val p = puzzle ?: return 0
         val baseMoves = p.gridSize * p.gridSize * 10
         return when {
@@ -166,7 +187,13 @@ class GameplayViewModel(
         }
     }
 
-    private fun calculateScore(): Int = (puzzle?.moves ?: 0) * 5
+    fun calculateScore(): Int {
+        val p = puzzle ?: return 0
+        val baseMoves = p.gridSize * p.gridSize * 10
+        val moveBonus = (baseMoves * 2 - p.moves).coerceAtLeast(0) * 10
+        val timeBonus = (300 - timeElapsedSeconds.toInt()).coerceAtLeast(0) * 2
+        return moveBonus + timeBonus
+    }
 
     fun togglePause() {
         isPaused = !isPaused

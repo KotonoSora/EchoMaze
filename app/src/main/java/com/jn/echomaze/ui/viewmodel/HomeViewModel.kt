@@ -28,9 +28,36 @@ class HomeViewModel(
     var canClaimDailyReward by mutableStateOf(false)
         private set
 
+    var levelUpCelebration by mutableStateOf<Int?>(null)
+        private set
+
     init {
         checkDailyAvailability()
         checkLoginStreak()
+        observeLevelUp()
+    }
+
+    private fun observeLevelUp() {
+        viewModelScope.launch {
+            stats.collect { statsValue ->
+                statsValue?.let {
+                    val currentLevel = (it.totalXp / 1000) + 1
+                    if (currentLevel > it.lastCelebratedLevel) {
+                        levelUpCelebration = currentLevel
+                    }
+                }
+            }
+        }
+    }
+
+    fun dismissLevelUp() {
+        viewModelScope.launch {
+            levelUpCelebration?.let { level ->
+                val currentStats = gameRepository.getGameStats().first() ?: UserStats()
+                gameRepository.updateStats(currentStats.copy(lastCelebratedLevel = level))
+                levelUpCelebration = null
+            }
+        }
     }
 
     private fun checkDailyAvailability() {

@@ -14,6 +14,7 @@ class ProcessLevelCompletionUseCase(
         score: Int,
         moves: Int,
         stars: Int,
+        timeSeconds: Int,
         isDailyChallenge: Boolean
     ) {
         val rewardCoins = if (isDailyChallenge) 200 else (stars * 50)
@@ -63,6 +64,9 @@ class ProcessLevelCompletionUseCase(
         repository.updateCoinBalance(currentCoins + rewardCoins)
 
         // Check achievements
-        checkAchievementsUseCase()
+        checkAchievementsUseCase(
+            lastLevelTimeSeconds = timeSeconds.toLong(),
+            lastLevelStars = stars
+        )
     }
 }

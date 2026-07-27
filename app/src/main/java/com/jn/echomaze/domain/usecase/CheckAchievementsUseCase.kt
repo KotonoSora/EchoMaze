@@ -6,9 +6,13 @@ import com.jn.echomaze.domain.repository.GameRepository
 import kotlinx.coroutines.flow.first
 
 class CheckAchievementsUseCase(private val repository: GameRepository) {
-    suspend operator fun invoke(): List<Achievement> {
+    suspend operator fun invoke(
+        lastLevelTimeSeconds: Long? = null,
+        lastLevelStars: Int? = null
+    ): List<Achievement> {
         val stats = repository.getGameStats().first() ?: UserStats()
         val allAchievements = repository.getAllAchievements().first()
+        val allLevels = repository.getAllLevels().first()
         val newlyUnlocked = mutableListOf<Achievement>()
 
         allAchievements.forEach { achievement ->
@@ -20,6 +24,11 @@ class CheckAchievementsUseCase(private val repository: GameRepository) {
                     "moves_5000" -> stats.totalMovesMade >= 5000
                     "coins_1000" -> stats.totalCoinsCollected >= 1000
                     "streak_7" -> stats.loginStreak >= 7
+                    "speedster" -> lastLevelTimeSeconds != null && lastLevelTimeSeconds < 30
+                    "collector" -> stats.totalCoinsCollected >= 5000
+                    "veteran" -> (stats.totalXp / 1000) + 1 >= 10
+                    "hinter" -> stats.hintsUsed >= 10
+                    "master" -> allLevels.count { it.starsEarned == 3 } >= 10
                     else -> false
                 }
 

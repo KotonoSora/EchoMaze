@@ -8,9 +8,9 @@ sealed class Screen(val route: String) {
     }
 
     data object Pause : Screen("pause")
-    data object LevelComplete : Screen("level_complete/{levelId}/{score}/{coins}") {
-        fun createRoute(levelId: Int, score: Int, coins: Int) =
-            "level_complete/$levelId/$score/$coins"
+    data object LevelComplete : Screen("level_complete/{levelId}/{score}/{coins}/{stars}/{time}") {
+        fun createRoute(levelId: Int, score: Int, coins: Int, stars: Int, time: Int) =
+            "level_complete/$levelId/$score/$coins/$stars/$time"
     }
 
     data object GameOver : Screen("game_over")

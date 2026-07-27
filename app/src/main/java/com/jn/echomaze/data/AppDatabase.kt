@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [LevelEntity::class, CoinEntity::class, StatsEntity::class, GameHistoryEntity::class, AchievementEntity::class],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -101,6 +101,36 @@ abstract class AppDatabase : RoomDatabase() {
                         "streak_7",
                         "LOYALIST",
                         "7 day login streak.",
+                        rewardCoins = 500
+                    ),
+                    AchievementEntity(
+                        "speedster",
+                        "SPEEDSTER",
+                        "Complete a level in under 30s.",
+                        rewardCoins = 250
+                    ),
+                    AchievementEntity(
+                        "collector",
+                        "COLLECTOR",
+                        "Reach 5000 total coins.",
+                        rewardCoins = 1000
+                    ),
+                    AchievementEntity(
+                        "veteran",
+                        "VETERAN",
+                        "Reach Player Level 10.",
+                        rewardCoins = 2000
+                    ),
+                    AchievementEntity(
+                        "hinter",
+                        "HINTER",
+                        "Use 10 hints.",
+                        rewardCoins = 100
+                    ),
+                    AchievementEntity(
+                        "master",
+                        "MASTER",
+                        "3 stars on 10 levels.",
                         rewardCoins = 500
                     )
                 )

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jn.echomaze.billing.BillingManager
 import com.jn.echomaze.billing.CoinProduct
+import com.jn.echomaze.domain.model.UserStats
 import com.jn.echomaze.domain.repository.GameRepository
 import com.jn.echomaze.engine.SoundManager
 import kotlinx.coroutines.delay
@@ -80,17 +81,37 @@ class ShopViewModel(
         gameRepository.updateCoinBalance(currentBalance + amount)
     }
 
-    fun buyUpgrade(price: Int, upgradeId: String) {
+    fun buyUpgrade(upgradeId: String) {
         viewModelScope.launch {
+            val stats = gameRepository.getGameStats().first() ?: UserStats()
+            val isAlreadyOwned = stats.ownedSkinIds.contains(upgradeId)
+
+            if (isAlreadyOwned) {
+                soundManager.playClick()
+                gameRepository.updateStats(stats.copy(selectedThemeId = upgradeId))
+                return@launch
+            }
+
             val balance = gameRepository.getCoinBalance().first()
             val cost = when (upgradeId) {
                 "hint" -> 300
                 "undo" -> 150
-                else -> price
+                "skin_sunset" -> 500
+                "skin_emerald" -> 750
+                else -> 0
             }
             if (balance >= cost) {
                 soundManager.playClick()
                 gameRepository.updateCoinBalance(balance - cost)
+
+                if (upgradeId.startsWith("skin_")) {
+                    gameRepository.updateStats(
+                        stats.copy(
+                            selectedThemeId = upgradeId,
+                            ownedSkinIds = stats.ownedSkinIds + upgradeId
+                        )
+                    )
+                }
             }
         }
     }

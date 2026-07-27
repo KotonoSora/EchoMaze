@@ -10,5 +10,9 @@ data class UserStats(
     val lastDailyRewardClaimed: Long = 0,
     val lastDailyChallengeCompleted: Long = 0,
     val loginStreak: Int = 1,
-    val lastLoginTimestamp: Long = 0
+    val lastLoginTimestamp: Long = 0,
+    val hintsUsed: Int = 0,
+    val selectedThemeId: String = "skin_neon",
+    val ownedSkinIds: Set<String> = setOf("skin_neon"),
+    val lastCelebratedLevel: Int = 1
 )

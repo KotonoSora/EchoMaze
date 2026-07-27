@@ -35,7 +35,11 @@ fun StatsEntity.toDomain() = UserStats(
     lastDailyRewardClaimed = lastDailyRewardClaimed,
     lastDailyChallengeCompleted = lastDailyChallengeCompleted,
     loginStreak = loginStreak,
-    lastLoginTimestamp = lastLoginTimestamp
+    lastLoginTimestamp = lastLoginTimestamp,
+    hintsUsed = hintsUsed,
+    selectedThemeId = selectedThemeId,
+    ownedSkinIds = ownedSkinIdsRaw.split(",").toSet(),
+    lastCelebratedLevel = lastCelebratedLevel
 )
 
 fun UserStats.toEntity() = StatsEntity(
@@ -48,7 +52,11 @@ fun UserStats.toEntity() = StatsEntity(
     lastDailyRewardClaimed = lastDailyRewardClaimed,
     lastDailyChallengeCompleted = lastDailyChallengeCompleted,
     loginStreak = loginStreak,
-    lastLoginTimestamp = lastLoginTimestamp
+    lastLoginTimestamp = lastLoginTimestamp,
+    hintsUsed = hintsUsed,
+    selectedThemeId = selectedThemeId,
+    ownedSkinIdsRaw = ownedSkinIds.joinToString(","),
+    lastCelebratedLevel = lastCelebratedLevel
 )
 
 fun AchievementEntity.toDomain() = Achievement(

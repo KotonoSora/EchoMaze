@@ -46,7 +46,9 @@ import androidx.compose.ui.unit.sp
 import com.jn.echomaze.domain.model.UserStats
 import com.jn.echomaze.ui.components.HeaderBar
 import com.jn.echomaze.ui.components.HeaderVariant
+import com.jn.echomaze.ui.components.LevelUpDialog
 import com.jn.echomaze.ui.components.NeonButton
+import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
 import com.jn.echomaze.ui.components.NeonTitle
 import com.jn.echomaze.ui.components.glow
@@ -55,6 +57,7 @@ import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.ElectricBlue
 import com.jn.echomaze.ui.theme.GoldCoin
 import com.jn.echomaze.ui.theme.NeonPurple
+import com.jn.echomaze.ui.theme.PressStart2P
 
 @Composable
 fun HomeScreen(
@@ -68,7 +71,9 @@ fun HomeScreen(
     onSkinsShopClick: () -> Unit,
     onHelpClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onShopClick: () -> Unit
+    onShopClick: () -> Unit,
+    levelUpToCelebrate: Int? = null,
+    onDismissLevelUp: () -> Unit = {}
 ) {
     NeonScaffold(
         topBar = {
@@ -114,6 +119,10 @@ fun HomeScreen(
             ) {
                 if (canClaimDailyReward) {
                     DailyRewardButton(onClaimDailyReward)
+                }
+
+                if ((stats?.loginStreak ?: 0) > 1) {
+                    StreakDisplay(streak = stats?.loginStreak ?: 0)
                 }
 
                 NeonButton(
@@ -166,6 +175,43 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.height(64.dp))
+        }
+
+        levelUpToCelebrate?.let { level ->
+            LevelUpDialog(newLevel = level, onDismiss = onDismissLevelUp)
+        }
+    }
+}
+
+@Composable
+fun StreakDisplay(streak: Int) {
+    NeonCard(
+        color = GoldCoin,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(text = "🔥", fontSize = 24.sp)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = "$streak DAY STREAK",
+                    color = GoldCoin,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = PressStart2P,
+                        fontSize = 12.sp
+                    )
+                )
+                Text(
+                    text = "Keep it up for more rewards!",
+                    color = Color.White.copy(alpha = 0.6f),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 8.sp
+                )
+            }
         }
     }
 }
