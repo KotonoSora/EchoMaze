@@ -1,21 +1,23 @@
 package com.jn.echomaze.ui.viewmodel
 
 import android.app.Activity
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jn.echomaze.billing.BillingManager
 import com.jn.echomaze.billing.CoinProduct
-import com.jn.echomaze.domain.model.UserStats
 import com.jn.echomaze.domain.repository.GameRepository
 import com.jn.echomaze.engine.SoundManager
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
+import com.jn.echomaze.ui.viewmodel.shop.ShopEffect
+import com.jn.echomaze.ui.viewmodel.shop.ShopEvent
+import com.jn.echomaze.ui.viewmodel.shop.ShopUiState
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ShopViewModel(
@@ -24,30 +26,38 @@ class ShopViewModel(
     private val soundManager: SoundManager
 ) : ViewModel() {
 
-    val coinBalance: StateFlow<Int> = gameRepository.getCoinBalance()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    private val _uiState = MutableStateFlow(ShopUiState())
+    val uiState: StateFlow<ShopUiState> = _uiState.asStateFlow()
 
-    val products: StateFlow<List<CoinProduct>> = billingManager.productsFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val isStoreAvailable: StateFlow<Boolean> = billingManager.isServiceAvailable
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    var adCooldownSeconds by mutableLongStateOf(0L)
-        private set
+    private val _uiEffect = Channel<ShopEffect>(Channel.BUFFERED)
+    val uiEffect = _uiEffect.receiveAsFlow()
 
     init {
-        startAdCooldownTimer()
+        observeData()
         observePurchases()
     }
 
-    private fun startAdCooldownTimer() {
+    private fun observeData() {
         viewModelScope.launch {
-            while (true) {
-                if (adCooldownSeconds > 0) {
-                    adCooldownSeconds--
+            gameRepository.getUserStats().collectLatest { stats ->
+                _uiState.update {
+                    it.copy(
+                        coinBalance = stats.coinBalance,
+                        stats = stats
+                    )
                 }
-                delay(1000)
+            }
+        }
+        
+        viewModelScope.launch {
+            billingManager.productsFlow.collectLatest { products ->
+                _uiState.update { it.copy(products = products) }
+            }
+        }
+
+        viewModelScope.launch {
+            billingManager.isServiceAvailable.collectLatest { available ->
+                _uiState.update { it.copy(isStoreAvailable = available) }
             }
         }
     }
@@ -57,67 +67,32 @@ class ShopViewModel(
             billingManager.purchasesFlow.collect { purchases ->
                 if (purchases.isNotEmpty()) {
                     addCoins(1000)
-                    soundManager.playWin()
-                } else {
-                    // Mock award for testing
-                    addCoins(500)
+                    emitEffect(ShopEffect.PlayWinSound)
                 }
             }
         }
     }
 
-    fun watchAdForCoins() {
-        if (adCooldownSeconds == 0L) {
-            viewModelScope.launch {
-                soundManager.playClick()
-                addCoins(50)
-                adCooldownSeconds = 3600 // 1 hour cooldown
-            }
+    fun onEvent(event: ShopEvent) {
+        when (event) {
+            is ShopEvent.PurchaseCoinPack -> purchaseCoinPack(event.activity, event.product)
+            ShopEvent.RestorePurchases -> billingManager.restorePurchases()
         }
     }
 
     private suspend fun addCoins(amount: Int) {
-        val currentBalance = gameRepository.getCoinBalance().first()
-        gameRepository.updateCoinBalance(currentBalance + amount)
+        val currentStats = gameRepository.getUserStats().first()
+        gameRepository.updateStats(currentStats.copy(coinBalance = currentStats.coinBalance + amount))
     }
 
-    fun buyUpgrade(upgradeId: String) {
-        viewModelScope.launch {
-            val stats = gameRepository.getGameStats().first() ?: UserStats()
-            val isAlreadyOwned = stats.ownedSkinIds.contains(upgradeId)
-
-            if (isAlreadyOwned) {
-                soundManager.playClick()
-                gameRepository.updateStats(stats.copy(selectedThemeId = upgradeId))
-                return@launch
-            }
-
-            val balance = gameRepository.getCoinBalance().first()
-            val cost = when (upgradeId) {
-                "hint" -> 300
-                "undo" -> 150
-                "skin_sunset" -> 500
-                "skin_emerald" -> 750
-                else -> 0
-            }
-            if (balance >= cost) {
-                soundManager.playClick()
-                gameRepository.updateCoinBalance(balance - cost)
-
-                if (upgradeId.startsWith("skin_")) {
-                    gameRepository.updateStats(
-                        stats.copy(
-                            selectedThemeId = upgradeId,
-                            ownedSkinIds = stats.ownedSkinIds + upgradeId
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    fun purchaseCoinPack(activity: Activity, product: CoinProduct) {
-        soundManager.playClick()
+    private fun purchaseCoinPack(activity: Activity, product: CoinProduct) {
+        emitEffect(ShopEffect.PlayClickSound)
         billingManager.launchBillingFlow(activity, product)
+    }
+
+    private fun emitEffect(effect: ShopEffect) {
+        viewModelScope.launch {
+            _uiEffect.send(effect)
+        }
     }
 }

@@ -1,17 +1,19 @@
 package com.jn.echomaze.ui.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jn.echomaze.domain.model.UserStats
 import com.jn.echomaze.domain.repository.GameRepository
 import com.jn.echomaze.engine.SoundManager
-import kotlinx.coroutines.flow.SharingStarted
+import com.jn.echomaze.ui.viewmodel.home.HomeEffect
+import com.jn.echomaze.ui.viewmodel.home.HomeEvent
+import com.jn.echomaze.ui.viewmodel.home.HomeUiState
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
@@ -19,106 +21,36 @@ class HomeViewModel(
     private val soundManager: SoundManager
 ) : ViewModel() {
 
-    val stats: StateFlow<UserStats?> = gameRepository.getGameStats()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    val coinBalance: StateFlow<Int> = gameRepository.getCoinBalance()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
-    var canClaimDailyReward by mutableStateOf(false)
-        private set
-
-    var levelUpCelebration by mutableStateOf<Int?>(null)
-        private set
+    private val _uiEffect = Channel<HomeEffect>(Channel.BUFFERED)
+    val uiEffect = _uiEffect.receiveAsFlow()
 
     init {
-        checkDailyAvailability()
-        checkLoginStreak()
-        observeLevelUp()
+        observeData()
     }
 
-    private fun observeLevelUp() {
+    private fun observeData() {
         viewModelScope.launch {
-            stats.collect { statsValue ->
-                statsValue?.let {
-                    val currentLevel = (it.totalXp / 1000) + 1
-                    if (currentLevel > it.lastCelebratedLevel) {
-                        levelUpCelebration = currentLevel
-                    }
+            gameRepository.getUserStats().collectLatest { stats ->
+                _uiState.update {
+                    it.copy(
+                        stats = stats,
+                        coinBalance = stats.coinBalance
+                    )
                 }
             }
         }
     }
 
-    fun dismissLevelUp() {
-        viewModelScope.launch {
-            levelUpCelebration?.let { level ->
-                val currentStats = gameRepository.getGameStats().first() ?: UserStats()
-                gameRepository.updateStats(currentStats.copy(lastCelebratedLevel = level))
-                levelUpCelebration = null
-            }
-        }
+    fun onEvent(event: HomeEvent) {
+        // No events needed currently as daily reward and level up are removed
     }
 
-    private fun checkDailyAvailability() {
+    private fun emitEffect(effect: HomeEffect) {
         viewModelScope.launch {
-            stats.collect { statsValue ->
-                statsValue?.let {
-                    val now = System.currentTimeMillis()
-                    canClaimDailyReward = now - it.lastDailyRewardClaimed >= 86400000
-                }
-            }
-        }
-    }
-
-    private fun checkLoginStreak() {
-        viewModelScope.launch {
-            val currentStats = gameRepository.getGameStats().first() ?: UserStats()
-            val now = System.currentTimeMillis()
-            val lastLogin = currentStats.lastLoginTimestamp
-
-            val diff = now - lastLogin
-            val oneDay = 86400000L
-
-            if (diff >= oneDay && diff < oneDay * 2) {
-                // Consecutive day
-                val newStreak = currentStats.loginStreak + 1
-                gameRepository.updateStats(
-                    currentStats.copy(
-                        loginStreak = newStreak,
-                        lastLoginTimestamp = now
-                    )
-                )
-                // Award coins
-                val currentCoins = gameRepository.getCoinBalance().first()
-                gameRepository.updateCoinBalance(currentCoins + (20 * newStreak))
-                soundManager.playWin()
-            } else if (diff >= oneDay * 2) {
-                // Streak broken
-                gameRepository.updateStats(
-                    currentStats.copy(
-                        loginStreak = 1,
-                        lastLoginTimestamp = now
-                    )
-                )
-            } else if (lastLogin == 0L) {
-                // First login
-                gameRepository.updateStats(currentStats.copy(lastLoginTimestamp = now))
-            }
-        }
-    }
-
-    fun claimDailyReward() {
-        viewModelScope.launch {
-            if (canClaimDailyReward) {
-                soundManager.playWin()
-                val currentCoins = gameRepository.getCoinBalance().first()
-                gameRepository.updateCoinBalance(currentCoins + 50)
-
-                val currentStats = gameRepository.getGameStats().first() ?: UserStats()
-                gameRepository.updateStats(currentStats.copy(lastDailyRewardClaimed = System.currentTimeMillis()))
-                canClaimDailyReward = false
-            }
+            _uiEffect.send(effect)
         }
     }
 }

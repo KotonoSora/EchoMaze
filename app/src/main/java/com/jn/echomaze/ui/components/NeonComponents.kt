@@ -97,23 +97,25 @@ fun NeonButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = CyberCyan,
+    enabled: Boolean = true,
     cornerRadius: Dp = 8.dp,
     glowRadius: Dp = 16.dp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
     content: @Composable RowScope.() -> Unit
 ) {
+    val buttonColor = if (enabled) color else color.copy(alpha = 0.3f)
     Surface(
         modifier = modifier
             .glow(
-                color = color,
+                color = buttonColor,
                 borderRadius = cornerRadius,
-                blurRadius = glowRadius,
+                blurRadius = if (enabled) glowRadius else 0.dp,
                 offsetY = 2.dp
             )
             .clip(RoundedCornerShape(cornerRadius))
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         color = Color.Black.copy(alpha = 0.7f),
-        border = BorderStroke(2.dp, color)
+        border = BorderStroke(2.dp, buttonColor)
     ) {
         Row(
             modifier = Modifier
@@ -131,25 +133,27 @@ fun NeonButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = CyberCyan,
+    enabled: Boolean = true,
     icon: ImageVector? = null
 ) {
     NeonButton(
         onClick = onClick,
         modifier = modifier,
-        color = color
+        color = color,
+        enabled = enabled
     ) {
         if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = color,
+                tint = if (enabled) color else color.copy(alpha = 0.3f),
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
         Text(
             text = text.uppercase(),
-            color = color,
+            color = if (enabled) color else color.copy(alpha = 0.3f),
             style = MaterialTheme.typography.labelLarge.copy(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp

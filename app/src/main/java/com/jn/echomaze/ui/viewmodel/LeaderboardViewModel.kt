@@ -2,26 +2,45 @@ package com.jn.echomaze.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jn.echomaze.domain.model.Achievement
-import com.jn.echomaze.domain.model.GameHistory
 import com.jn.echomaze.domain.repository.GameRepository
-import kotlinx.coroutines.flow.SharingStarted
+import com.jn.echomaze.ui.viewmodel.leaderboard.LeaderboardEvent
+import com.jn.echomaze.ui.viewmodel.leaderboard.LeaderboardUiState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class LeaderboardViewModel(
     private val gameRepository: GameRepository
 ) : ViewModel() {
 
-    val topScores: StateFlow<List<GameHistory>> = gameRepository.getTopScores()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _uiState = MutableStateFlow(LeaderboardUiState())
+    val uiState: StateFlow<LeaderboardUiState> = _uiState.asStateFlow()
 
-    val myHistory: StateFlow<List<GameHistory>> = gameRepository.getAllHistory()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    init {
+        observeData()
+    }
 
-    val achievements: StateFlow<List<Achievement>> = gameRepository.getAllAchievements()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private fun observeData() {
+        viewModelScope.launch {
+            combine(
+                gameRepository.getHistory(),
+                gameRepository.getUserStats()
+            ) { history, stats ->
+                _uiState.update {
+                    it.copy(
+                        history = history,
+                        coinBalance = stats.coinBalance
+                    )
+                }
+            }.collectLatest { }
+        }
+    }
 
-    val coinBalance: StateFlow<Int> = gameRepository.getCoinBalance()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    fun onEvent(event: LeaderboardEvent) {
+        // No events to handle
+    }
 }

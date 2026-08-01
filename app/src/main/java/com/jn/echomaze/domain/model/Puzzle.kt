@@ -5,5 +5,6 @@ data class Puzzle(
     val gridSize: Int,
     val moves: Int = 0,
     val isSolved: Boolean = false,
-    val imageRes: Int? = null
+    val imageRes: Int? = null,
+    val seed: Int = 0
 )

@@ -32,20 +32,27 @@ import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.GoldCoin
 import com.jn.echomaze.ui.theme.NeonPurple
+import com.jn.echomaze.ui.viewmodel.gameplay.GameplayEvent
+import com.jn.echomaze.ui.viewmodel.gameplay.GameplayUiState
 
 @Composable
 fun DailyChallengeScreen(
-    coinBalance: Int,
+    state: GameplayUiState,
+    onEvent: (GameplayEvent) -> Unit,
     onBackClick: () -> Unit,
-    onPlayClick: () -> Unit,
-    isAlreadyCompleted: Boolean
+    onPlayClick: () -> Unit
 ) {
+    val isAlreadyCompleted = state.stats?.lastDailyChallengeCompleted?.let { last ->
+        val now = System.currentTimeMillis()
+        (now / 86400000) == (last / 86400000)
+    } ?: false
+
     NeonScaffold(
         topBar = {
             HeaderBar(
                 variant = HeaderVariant.STANDARD,
                 title = "DAILY CHALLENGE",
-                coinBalance = coinBalance,
+                coinBalance = state.coinBalance,
                 onBackClick = onBackClick
             )
         }
@@ -72,7 +79,7 @@ fun DailyChallengeScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Complete a 4x4 puzzle in under 50 moves!",
+                        text = "Complete a 3x3 puzzle in under 50 moves!",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.7f),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -123,7 +130,10 @@ fun DailyChallengeScreen(
             } else {
                 NeonButton(
                     text = "START CHALLENGE",
-                    onClick = onPlayClick,
+                    onClick = {
+                        onEvent(GameplayEvent.StartPuzzle(0)) // 0 for daily logic
+                        onPlayClick()
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     color = CyberCyan
                 )
@@ -139,10 +149,10 @@ fun DailyChallengeScreen(
 fun DailyChallengeScreenPreview() {
     AppTheme {
         DailyChallengeScreen(
-            coinBalance = 500,
+            state = GameplayUiState(coinBalance = 500),
+            onEvent = {},
             onBackClick = {},
-            onPlayClick = {},
-            isAlreadyCompleted = false
+            onPlayClick = {}
         )
     }
 }
