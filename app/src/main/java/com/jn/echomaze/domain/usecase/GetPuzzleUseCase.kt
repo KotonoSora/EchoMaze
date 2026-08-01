@@ -3,19 +3,25 @@ package com.jn.echomaze.domain.usecase
 import com.jn.echomaze.domain.model.Puzzle
 import kotlin.random.Random
 
-class GetPuzzleUseCase {
-    operator fun invoke(gridSize: Int, seed: Int, imageRes: Int? = null): Puzzle {
-        val random = Random(seed)
-        val initialTiles = (1 until gridSize * gridSize).toList() + listOf(0)
+data class GetPuzzleInput(
+    val gridSize: Int,
+    val seed: Int,
+    val imageRes: Int? = null
+)
+
+class GetPuzzleUseCase : UseCase<GetPuzzleInput, Puzzle> {
+    override fun invoke(input: GetPuzzleInput): Puzzle {
+        val random = Random(input.seed)
+        val initialTiles = (1 until input.gridSize * input.gridSize).toList() + listOf(0)
 
         val tiles = initialTiles.toMutableList()
         var emptyIndex = tiles.indexOf(0)
 
         // Shuffle by making valid moves from a solved state to ensure solvability
-        val shuffleMoves = gridSize * gridSize * 20
+        val shuffleMoves = input.gridSize * input.gridSize * 20
 
         repeat(shuffleMoves) {
-            val neighbors = getNeighbors(emptyIndex, gridSize)
+            val neighbors = getNeighbors(emptyIndex, input.gridSize)
             val moveToIndex = neighbors[random.nextInt(neighbors.size)]
 
             // Swap
@@ -26,10 +32,11 @@ class GetPuzzleUseCase {
 
         return Puzzle(
             tiles = tiles,
-            gridSize = gridSize,
+            gridSize = input.gridSize,
             moves = 0,
             isSolved = false,
-            imageRes = imageRes
+            imageRes = input.imageRes,
+            seed = input.seed
         )
     }
 

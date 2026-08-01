@@ -2,8 +2,16 @@ package com.jn.echomaze.domain.usecase
 
 import com.jn.echomaze.domain.model.Puzzle
 
-class HandleMoveUseCase {
-    operator fun invoke(puzzle: Puzzle, clickedIndex: Int): Puzzle {
+data class HandleMoveInput(
+    val puzzle: Puzzle,
+    val clickedIndex: Int
+)
+
+class HandleMoveUseCase : UseCase<HandleMoveInput, Puzzle> {
+    override fun invoke(input: HandleMoveInput): Puzzle {
+        val puzzle = input.puzzle
+        val clickedIndex = input.clickedIndex
+        
         if (puzzle.isSolved) return puzzle
 
         val emptyIndex = puzzle.tiles.indexOf(0)

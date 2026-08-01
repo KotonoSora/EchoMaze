@@ -10,169 +10,159 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.GraphicEq
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jn.echomaze.domain.model.UserStats
+import androidx.compose.ui.unit.sp
 import com.jn.echomaze.ui.components.HeaderBar
 import com.jn.echomaze.ui.components.HeaderVariant
-import com.jn.echomaze.ui.components.NeonCard
+import com.jn.echomaze.ui.components.NeonButton
 import com.jn.echomaze.ui.components.NeonScaffold
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
-import com.jn.echomaze.ui.theme.NeonPurple
+import com.jn.echomaze.ui.theme.NeonPink
+import com.jn.echomaze.ui.viewmodel.settings.SettingsEvent
+import com.jn.echomaze.ui.viewmodel.settings.SettingsUiState
 
 @Composable
 fun SettingsScreen(
-    stats: UserStats?,
-    coinBalance: Int,
+    state: SettingsUiState,
+    onEvent: (SettingsEvent) -> Unit,
     onBackClick: () -> Unit
 ) {
-    var soundEnabled by remember { mutableStateOf(true) }
-    var vibrationEnabled by remember { mutableStateOf(true) }
-
     NeonScaffold(
         topBar = {
             HeaderBar(
                 variant = HeaderVariant.STANDARD,
                 title = "SETTINGS",
-                coinBalance = coinBalance,
+                coinBalance = state.coinBalance,
                 onBackClick = onBackClick
             )
         }
-    ) { padding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SettingToggle(
-                    title = "Sound Effects",
-                    icon = Icons.Rounded.VolumeUp,
-                    checked = soundEnabled,
-                    onCheckedChange = { soundEnabled = it },
-                    color = CyberCyan
-                )
-                SettingToggle(
-                    title = "Vibration",
-                    icon = Icons.Rounded.GraphicEq,
-                    checked = vibrationEnabled,
-                    onCheckedChange = { vibrationEnabled = it },
-                    color = NeonPurple
-                )
-            }
+            SectionHeader(icon = Icons.Rounded.Settings, title = "PREFERENCES")
 
-            Spacer(modifier = Modifier.weight(weight = 1f))
-
-            NeonCard(color = CyberCyan, modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = "STATISTICS",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.White.copy(alpha = 0.5f)
-                    )
-
-                    if (stats != null) {
-                        val minutes = (stats.totalPlayTimeMillis / 60000) % 60
-                        val hours = (stats.totalPlayTimeMillis / 3600000)
-                        val formattedTime =
-                            if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
-
-                        StatRow("Playtime", formattedTime)
-                        StatRow("Levels", stats.totalLevelsCompleted.toString())
-                        StatRow("Moves", stats.totalMovesMade.toString())
-                        StatRow("XP", stats.totalXp.toString())
-                        StatRow("Coins", stats.totalCoinsCollected.toString())
-                    } else {
-                        StatRow("Loading...", "")
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
-
-@Composable
-fun SettingToggle(
-    title: String,
-    icon: ImageVector,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    color: Color
-) {
-    NeonCard(color = color, modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = title, style = MaterialTheme.typography.bodyMedium, color = Color.White)
-            }
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = color,
-                    checkedTrackColor = color.copy(alpha = 0.5f)
-                )
+            SettingToggle(
+                label = "Sound Effects",
+                checked = state.stats?.isSoundEnabled ?: true,
+                onCheckedChange = { onEvent(SettingsEvent.OnSoundToggled(it)) }
             )
+            SettingToggle(
+                label = "Background Music",
+                checked = state.stats?.isMusicEnabled ?: true,
+                onCheckedChange = { onEvent(SettingsEvent.OnMusicToggled(it)) }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+            SectionHeader(icon = Icons.Rounded.Info, title = "ABOUT")
+
+            StatRow("App Version", "1.0.4")
+            StatRow("Developer", "JN Games")
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            NeonButton(
+                text = "RESET PROGRESS",
+                onClick = { onEvent(SettingsEvent.OnResetStats) },
+                modifier = Modifier.fillMaxWidth(),
+                color = NeonPink
+            )
+
+            Spacer(modifier = Modifier.height(64.dp))
         }
     }
 }
 
 @Composable
-fun StatRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+private fun SectionHeader(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(bottom = 16.dp)
+    ) {
+        Icon(icon, contentDescription = null, tint = CyberCyan, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = title,
+            color = CyberCyan,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp
+        )
+    }
+}
+
+@Composable
+private fun StatRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Text(
             text = label,
-            color = Color.White.copy(alpha = 0.8f),
-            style = MaterialTheme.typography.bodySmall
+            color = Color.White.copy(alpha = 0.6f),
+            style = MaterialTheme.typography.bodyMedium
         )
         Text(
             text = value,
-            color = CyberCyan,
+            color = Color.White,
             fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+    HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
+}
+
+@Composable
+private fun SettingToggle(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = label, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = CyberCyan,
+                checkedTrackColor = CyberCyan.copy(alpha = 0.5f),
+                uncheckedThumbColor = Color.Gray,
+                uncheckedTrackColor = Color.DarkGray
+            )
         )
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SettingsPreview() {
     AppTheme {
-        SettingsScreen(
-            stats = UserStats(3600000, 10, 50, 1000, 500, 2500, 0, 0),
-            coinBalance = 500,
-            onBackClick = {}
-        )
+        SettingsScreen(SettingsUiState(coinBalance = 100), {}, {})
     }
 }

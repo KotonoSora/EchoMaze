@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Numbers
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,171 +32,262 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.withSave
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jn.echomaze.ui.components.HeaderBar
 import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
-import com.jn.echomaze.ui.components.NeonCard
 import com.jn.echomaze.ui.components.NeonScaffold
+import com.jn.echomaze.ui.components.glow
 import com.jn.echomaze.ui.theme.AppTheme
-import com.jn.echomaze.ui.theme.CyberCyan
+import com.jn.echomaze.ui.theme.GameTheme
 import com.jn.echomaze.ui.theme.NeonPink
 import com.jn.echomaze.ui.theme.NeonYellow
+import com.jn.echomaze.ui.viewmodel.gameplay.GameplayEvent
+import com.jn.echomaze.ui.viewmodel.gameplay.GameplayUiState
+import kotlin.random.Random
 
 @Composable
 fun GameplayScreen(
-    levelId: Int,
-    coins: Int,
-    movesCount: Int,
-    maxMoves: Int,
-    gridSize: Int,
-    tiles: List<Int>,
-    imageRes: Int?,
-    showNumbersHint: Boolean,
-    showPreviewHint: Boolean,
-    onTileClick: (Int) -> Unit,
+    state: GameplayUiState,
+    onEvent: (GameplayEvent) -> Unit,
     onPauseClick: () -> Unit,
     onQuickBuyCoins: () -> Unit,
-    onHintNumbersClick: () -> Unit,
-    onHintPreviewClick: () -> Unit
+    theme: GameTheme = GameTheme.NeonBlueTheme
 ) {
+    val puzzle = state.puzzle
+    val maxMoves = state.gridSize * state.gridSize * 15
+
     NeonScaffold(
         topBar = {
             HeaderBar(
                 variant = HeaderVariant.GAMEPLAY,
-                title = if (levelId == 0) "DAILY" else levelId.toString().padStart(2, '0'),
-                coinBalance = coins,
+                title = "PUZZLE",
+                coinBalance = state.coinBalance,
                 onCoinsClick = onQuickBuyCoins,
-                onActionClick = onPauseClick,
+                onActionClick = {
+                    onEvent(GameplayEvent.TogglePause)
+                    onPauseClick()
+                },
                 actionIcon = Icons.Rounded.Pause
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Puzzle Grid
-            BoxWithConstraints(
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
                 modifier = Modifier
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val spacing = 8.dp
-                val boardSize = maxWidth
-                val tileSize = (boardSize - (spacing * (gridSize + 1))) / gridSize
+                // Stats Section
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            StatItem(
+                                label = "MOVES",
+                                value = "${puzzle?.moves ?: 0} / $maxMoves",
+                                color = if ((puzzle?.moves
+                                        ?: 0) > maxMoves * 0.8f
+                                ) NeonPink else theme.primaryColor
+                            )
+                            VerticalDivider(
+                                modifier = Modifier.height(32.dp),
+                                color = Color.White.copy(alpha = 0.1f)
+                            )
+                            StatItem(
+                                label = "TIME",
+                                value = formatTimeInSec(state.timeElapsedSeconds),
+                                color = theme.primaryColor
+                            )
+                            VerticalDivider(
+                                modifier = Modifier.height(32.dp),
+                                color = Color.White.copy(alpha = 0.1f)
+                            )
+                            StatItem(label = "TARGET", value = "SOLVE IMAGE", color = Color.White)
+                        }
 
-                Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
-                    for (r in 0 until gridSize) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
-                            for (c in 0 until gridSize) {
-                                val index = r * gridSize + c
-                                Box(modifier = Modifier.size(tileSize)) {
-                                    if (index < tiles.size) {
-                                        val tileId = tiles[index]
-                                        PuzzleTile(
-                                            tileId = tileId,
-                                            gridSize = gridSize,
-                                            imageRes = imageRes,
-                                            showNumbers = showNumbersHint,
-                                            onClick = { onTileClick(index) }
-                                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        val progress =
+                            ((puzzle?.moves ?: 0).toFloat() / maxMoves.toFloat()).coerceIn(0f, 1f)
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = if (progress > 0.8f) NeonPink else theme.primaryColor,
+                            trackColor = Color.White.copy(alpha = 0.1f),
+                            strokeCap = StrokeCap.Round
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Hint Buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    NeonButton(
+                        text = if (state.showNumbersHint) "HIDE #" else "SHOW # (10)",
+                        onClick = { onEvent(GameplayEvent.ToggleNumbersHint) },
+                        modifier = Modifier.weight(1f),
+                        color = NeonYellow,
+                        icon = Icons.Rounded.Numbers
+                    )
+                    NeonButton(
+                        text = "PREVIEW",
+                        onClick = { onEvent(GameplayEvent.TogglePreviewHint) },
+                        modifier = Modifier.weight(1f),
+                        color = NeonPink,
+                        icon = Icons.Rounded.Visibility
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Puzzle Grid
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp)
+                        .aspectRatio(1f)
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val boardSize = maxWidth
+                    val tileSize = boardSize / state.gridSize
+
+                    Column {
+                        for (r in 0 until state.gridSize) {
+                            Row {
+                                for (c in 0 until state.gridSize) {
+                                    val index = r * state.gridSize + c
+                                    Box(modifier = Modifier.size(tileSize)) {
+                                        puzzle?.tiles?.getOrNull(index)?.let { tileId ->
+                                            PuzzleTile(
+                                                tileId = tileId,
+                                                gridSize = state.gridSize,
+                                                imageRes = puzzle.imageRes,
+                                                showNumber = state.showNumbersHint,
+                                                theme = theme,
+                                                onClick = { onEvent(GameplayEvent.OnTileClick(index)) }
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            if (state.showPreviewHint && puzzle?.imageRes != null) {
+                PreviewHintDialog(
+                    imageRes = puzzle.imageRes,
+                    theme = theme,
+                    onDismiss = { onEvent(GameplayEvent.TogglePreviewHint) })
+            }
 
-            // Hint Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                NeonButton(
-                    text = if (showNumbersHint) "HIDE #" else "SHOW # (10)",
-                    onClick = onHintNumbersClick,
-                    modifier = Modifier.weight(1f),
-                    color = NeonYellow,
-                    icon = Icons.Rounded.Numbers
-                )
-                NeonButton(
-                    text = "PREVIEW",
-                    onClick = onHintPreviewClick,
-                    modifier = Modifier.weight(1f),
-                    color = NeonPink,
-                    icon = Icons.Rounded.Visibility
+            if (state.isSolved) {
+                VictoryDialog(
+                    score = state.earnedScore,
+                    coins = state.earnedCoins,
+                    onNextClick = { onEvent(GameplayEvent.StartPuzzle(Random.nextInt())) },
+                    theme = theme
                 )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Stats - Bottom
-            NeonCard(color = CyberCyan, modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "MOVES",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.6f)
-                        )
-                        Text(
-                            text = "$movesCount / $maxMoves",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (movesCount > maxMoves * 0.8f) Color.Red else CyberCyan,
-                            fontSize = 12.sp
-                        )
-                    }
-
-                    VerticalDivider(
-                        modifier = Modifier.height(40.dp),
-                        color = Color.White.copy(alpha = 0.1f)
-                    )
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "TARGET",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.6f)
-                        )
-                        Text(
-                            text = "${gridSize * gridSize * 10}",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-
-        if (showPreviewHint && imageRes != null) {
-            PreviewHintDialog(imageRes = imageRes, onDismiss = onHintPreviewClick)
         }
     }
+}
+
+@Composable
+fun VictoryDialog(score: Int, coins: Int, onNextClick: () -> Unit, theme: GameTheme) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color.Black.copy(alpha = 0.8f)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "VICTORY!",
+                style = MaterialTheme.typography.displayMedium,
+                color = theme.primaryColor,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Score: $score",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White
+            )
+            Text(
+                text = "+$coins COINS earned",
+                style = MaterialTheme.typography.titleMedium,
+                color = NeonYellow
+            )
+            Spacer(modifier = Modifier.height(48.dp))
+            NeonButton(
+                text = "NEXT PUZZLE",
+                onClick = onNextClick,
+                color = theme.primaryColor
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatItem(label: String, value: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.6f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            color = color,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+private fun formatTimeInSec(seconds: Long): String {
+    val m = seconds / 60
+    val s = seconds % 60
+    return "${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}"
 }
 
 @Composable
@@ -204,7 +295,8 @@ fun PuzzleTile(
     tileId: Int,
     gridSize: Int,
     imageRes: Int?,
-    showNumbers: Boolean,
+    showNumber: Boolean,
+    theme: GameTheme = GameTheme.NeonBlueTheme,
     onClick: () -> Unit
 ) {
     if (tileId == 0) {
@@ -213,64 +305,46 @@ fun PuzzleTile(
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(8.dp))
                 .clickable { onClick() },
-            color = if (imageRes != null) Color.Black else CyberCyan.copy(alpha = 0.8f),
-            border = BorderStroke(
-                2.dp,
-                if (imageRes != null) CyberCyan.copy(alpha = 0.5f) else CyberCyan
-            )
+            color = if (imageRes != null) theme.tileColor else theme.primaryColor.copy(alpha = 0.8f),
+            shape = RectangleShape
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 if (imageRes != null) {
-                    BoxWithConstraints(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clipToBounds()
-                    ) {
-                        val originalRow = (tileId - 1) / gridSize
-                        val originalCol = (tileId - 1) % gridSize
-
-                        val offsetX = -originalCol * maxWidth.value
-                        val offsetY = -originalRow * maxHeight.value
-
-                        Image(
-                            painter = painterResource(id = imageRes),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(maxWidth * gridSize, maxHeight * gridSize)
-                                .offset {
-                                    IntOffset(
-                                        (offsetX * density).toInt(),
-                                        (offsetY * density).toInt()
-                                    )
-                                },
-                            contentScale = ContentScale.FillBounds
-                        )
-                    }
-                }
-
-                if (imageRes == null || showNumbers) {
+                    val painter = painterResource(id = imageRes)
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(
-                                if (imageRes != null) Color.Black.copy(alpha = 0.4f)
-                                else Color.Transparent
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = tileId.toString(),
-                            color = if (imageRes != null) Color.White else Color.Black,
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
+                            .clipToBounds()
+                            .drawWithContent {
+                                val tileSize = size.width
+                                val boardSize = tileSize * gridSize
+                                val originalRow = (tileId - 1) / gridSize
+                                val originalCol = (tileId - 1) % gridSize
+
+                                drawIntoCanvas { canvas ->
+                                    canvas.withSave {
+                                        canvas.translate(
+                                            -originalCol * tileSize,
+                                            -originalRow * tileSize
+                                        )
+                                        with(painter) { draw(size = Size(boardSize, boardSize)) }
+                                    }
+                                }
+                            }
+                    )
+                }
+
+                if (imageRes == null || showNumber) {
+                    Text(
+                        text = tileId.toString(),
+                        color = if (imageRes != null) theme.textColor else Color.Black,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ),
+                        modifier = Modifier.glow(if (imageRes != null) theme.tileColor else Color.Transparent)
+                    )
                 }
             }
         }
@@ -278,19 +352,20 @@ fun PuzzleTile(
 }
 
 @Composable
-fun PreviewHintDialog(imageRes: Int, onDismiss: () -> Unit) {
+fun PreviewHintDialog(
+    imageRes: Int,
+    theme: GameTheme = GameTheme.NeonBlueTheme,
+    onDismiss: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxSize()
             .clickable { onDismiss() },
         color = Color.Black.copy(alpha = 0.9f)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "TARGET IMAGE",
@@ -305,7 +380,7 @@ fun PreviewHintDialog(imageRes: Int, onDismiss: () -> Unit) {
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(16.dp))
-                        .border(2.dp, CyberCyan, RoundedCornerShape(16.dp)),
+                        .border(2.dp, theme.primaryColor, RoundedCornerShape(16.dp)),
                     contentScale = ContentScale.FillBounds
                 )
                 Text(
@@ -324,20 +399,18 @@ fun PreviewHintDialog(imageRes: Int, onDismiss: () -> Unit) {
 fun GameplayScreenPreview() {
     AppTheme {
         GameplayScreen(
-            levelId = 1,
-            coins = 150,
-            movesCount = 5,
-            maxMoves = 50,
-            gridSize = 3,
-            tiles = listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
-            imageRes = null,
-            showNumbersHint = true,
-            showPreviewHint = false,
-            onTileClick = {},
+            state = GameplayUiState(
+                timeElapsedSeconds = 45,
+                gridSize = 3,
+                puzzle = com.jn.echomaze.domain.model.Puzzle(
+                    tiles = listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
+                    gridSize = 3,
+                    imageRes = com.jn.echomaze.R.drawable.assets_1
+                )
+            ),
+            onEvent = {},
             onPauseClick = {},
-            onQuickBuyCoins = {},
-            onHintNumbersClick = {},
-            onHintPreviewClick = {}
+            onQuickBuyCoins = {}
         )
     }
 }

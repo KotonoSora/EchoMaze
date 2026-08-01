@@ -31,7 +31,7 @@ object AppViewModelProvider {
                 soundManager = application().container.soundManager,
                 getPuzzleUseCase = application().container.getPuzzleUseCase,
                 handleMoveUseCase = application().container.handleMoveUseCase,
-                processLevelCompletionUseCase = application().container.processLevelCompletionUseCase
+                processGameCompletionUseCase = application().container.processGameCompletionUseCase
             )
         }
 

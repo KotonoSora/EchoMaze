@@ -2,13 +2,12 @@ package com.jn.echomaze.di
 
 import android.content.Context
 import com.jn.echomaze.billing.BillingManager
-import com.jn.echomaze.data.AppDatabase
-import com.jn.echomaze.data.repository.OfflineGameRepository
+import com.jn.echomaze.data.PreferenceManager
+import com.jn.echomaze.data.repository.SharedPrefsGameRepository
 import com.jn.echomaze.domain.repository.GameRepository
-import com.jn.echomaze.domain.usecase.CheckAchievementsUseCase
 import com.jn.echomaze.domain.usecase.GetPuzzleUseCase
 import com.jn.echomaze.domain.usecase.HandleMoveUseCase
-import com.jn.echomaze.domain.usecase.ProcessLevelCompletionUseCase
+import com.jn.echomaze.domain.usecase.ProcessGameCompletionUseCase
 import com.jn.echomaze.engine.SoundManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,22 +22,25 @@ interface AppContainer {
     val soundManager: SoundManager
     val getPuzzleUseCase: GetPuzzleUseCase
     val handleMoveUseCase: HandleMoveUseCase
-    val checkAchievementsUseCase: CheckAchievementsUseCase
-    val processLevelCompletionUseCase: ProcessLevelCompletionUseCase
+    val processGameCompletionUseCase: ProcessGameCompletionUseCase
 }
 
 /**
- * [AppContainer] implementation that provides instance of [OfflineGameRepository]
+ * [AppContainer] implementation that provides instance of [SharedPrefsGameRepository]
  */
 class AppDataContainer(private val context: Context) : AppContainer {
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
+    private val preferenceManager by lazy {
+        PreferenceManager(context)
+    }
+
     /**
      * Implementation for [GameRepository]
      */
     override val gameRepository: GameRepository by lazy {
-        OfflineGameRepository(AppDatabase.getDatabase(context).gameDao())
+        SharedPrefsGameRepository(preferenceManager)
     }
 
     override val billingManager: BillingManager by lazy {
@@ -59,11 +61,7 @@ class AppDataContainer(private val context: Context) : AppContainer {
         HandleMoveUseCase()
     }
 
-    override val checkAchievementsUseCase: CheckAchievementsUseCase by lazy {
-        CheckAchievementsUseCase(gameRepository)
-    }
-
-    override val processLevelCompletionUseCase: ProcessLevelCompletionUseCase by lazy {
-        ProcessLevelCompletionUseCase(gameRepository, checkAchievementsUseCase)
+    override val processGameCompletionUseCase: ProcessGameCompletionUseCase by lazy {
+        ProcessGameCompletionUseCase(gameRepository)
     }
 }
