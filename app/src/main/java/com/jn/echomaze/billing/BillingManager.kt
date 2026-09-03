@@ -75,8 +75,6 @@ class BillingManager(
     }
 
     private fun handleError() {
-        // Simplified error handling: Provide mock data if real store fails
-        // We'll use a local check instead of BuildConfig if it's missing
         _productsFlow.value = getMockProducts()
     }
 
@@ -132,7 +130,7 @@ class BillingManager(
         )
     }
 
-    private fun getCoinAmount(productId: String): Int {
+    fun getCoinAmount(productId: String): Int {
         return productId.substringAfter("coins_").toIntOrNull() ?: 0
     }
 
@@ -178,11 +176,12 @@ class BillingManager(
         }
     }
 
-    fun launchBillingFlow(activity: Activity, product: CoinProduct) {
-        if (product.productDetails != null) {
+    fun launchBillingFlow(activity: Activity, product: CoinProduct): Boolean {
+        val details = product.productDetails
+        if (details != null && billingClient.isReady) {
             val productDetailsParamsList = listOf(
                 BillingFlowParams.ProductDetailsParams.newBuilder()
-                    .setProductDetails(product.productDetails)
+                    .setProductDetails(details)
                     .build()
             )
 
@@ -190,14 +189,9 @@ class BillingManager(
                 .setProductDetailsParamsList(productDetailsParamsList)
                 .build()
 
-            billingClient.launchBillingFlow(activity, billingFlowParams)
-        } else {
-            // Mock success for development
-            externalScope.launch {
-                // Award coins based on product
-                // In this mock case we trigger a purchase update with a dummy
-                _purchasesFlow.emit(emptyList())
-            }
+            val result = billingClient.launchBillingFlow(activity, billingFlowParams)
+            return result.responseCode == BillingClient.BillingResponseCode.OK
         }
+        return false
     }
 }

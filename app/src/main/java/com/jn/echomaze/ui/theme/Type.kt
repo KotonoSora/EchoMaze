@@ -94,8 +94,8 @@ val Typography = Typography(
     bodySmall = TextStyle(
         fontFamily = PressStart2P,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
         letterSpacing = 0.4.sp
     ),
     labelLarge = TextStyle(
@@ -108,15 +108,15 @@ val Typography = Typography(
     labelMedium = TextStyle(
         fontFamily = PressStart2P,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
         letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
         fontFamily = PressStart2P,
         fontWeight = FontWeight.Normal,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
         letterSpacing = 0.5.sp
     )
 )

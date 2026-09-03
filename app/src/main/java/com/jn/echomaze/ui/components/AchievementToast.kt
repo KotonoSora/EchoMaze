@@ -64,13 +64,13 @@ fun AchievementToast(
                             text = "ACHIEVEMENT!",
                             style = MaterialTheme.typography.labelSmall,
                             color = CyberCyan,
-                            fontSize = 8.sp
+                            fontSize = 14.sp
                         )
                         Text(
                             text = title,
                             style = MaterialTheme.typography.titleSmall,
                             color = Color.White,
-                            fontSize = 11.sp
+                            fontSize = 14.sp
                         )
                     }
                 }

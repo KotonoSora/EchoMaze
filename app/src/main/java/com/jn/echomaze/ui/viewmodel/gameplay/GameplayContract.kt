@@ -24,6 +24,7 @@ sealed interface GameplayEvent {
     data object TogglePreviewHint : GameplayEvent
     data class OnTileClick(val index: Int) : GameplayEvent
     data object TogglePause : GameplayEvent
+    data object Resume : GameplayEvent
     data object DismissVictory : GameplayEvent
 }
 

@@ -125,14 +125,14 @@ fun HistoryRow(history: GameHistory) {
                 text = dateString,
                 color = Color.White.copy(alpha = 0.8f),
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = 11.sp
+                fontSize = 14.sp
             )
             if (history.isDailyChallenge) {
                 Text(
                     text = "DAILY",
                     color = GoldCoin,
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 8.sp
+                    fontSize = 14.sp
                 )
             }
         }
@@ -189,8 +189,21 @@ fun LeaderboardPreview() {
         LeaderboardScreen(
             state = LeaderboardUiState(
                 history = listOf(
-                    GameHistory(timestamp = System.currentTimeMillis(), score = 1250, moves = 15, rewardCoins = 50, levelId = 1),
-                    GameHistory(timestamp = System.currentTimeMillis() - 86400000, score = 980, moves = 22, rewardCoins = 200, levelId = 0, isDailyChallenge = true)
+                    GameHistory(
+                        timestamp = System.currentTimeMillis(),
+                        score = 1250,
+                        moves = 15,
+                        rewardCoins = 50,
+                        levelId = 1
+                    ),
+                    GameHistory(
+                        timestamp = System.currentTimeMillis() - 86400000,
+                        score = 980,
+                        moves = 22,
+                        rewardCoins = 200,
+                        levelId = 0,
+                        isDailyChallenge = true
+                    )
                 ),
                 coinBalance = 200
             ),

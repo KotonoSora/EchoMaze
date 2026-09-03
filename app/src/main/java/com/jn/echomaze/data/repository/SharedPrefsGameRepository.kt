@@ -21,7 +21,8 @@ class SharedPrefsGameRepository(
         val currentHistory = preferenceManager.getHistory().toMutableList()
         currentHistory.add(0, history)
         // Keep only last 50 entries
-        val updatedHistory = if (currentHistory.size > 50) currentHistory.take(50) else currentHistory
+        val updatedHistory =
+            if (currentHistory.size > 50) currentHistory.take(50) else currentHistory
         preferenceManager.saveHistory(updatedHistory)
     }
 

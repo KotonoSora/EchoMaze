@@ -1,5 +1,6 @@
 package com.jn.echomaze.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,10 @@ fun PauseScreen(
     onMenuClick: () -> Unit,
     onRestartClick: () -> Unit
 ) {
+    BackHandler {
+        onResumeClick()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()

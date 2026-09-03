@@ -1,5 +1,7 @@
 package com.jn.echomaze.ui.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,7 +30,6 @@ import com.jn.echomaze.ui.viewmodel.ShopViewModel
 import com.jn.echomaze.ui.viewmodel.gameplay.GameplayEffect
 import com.jn.echomaze.ui.viewmodel.gameplay.GameplayEvent
 import com.jn.echomaze.ui.viewmodel.home.HomeEffect
-import com.jn.echomaze.ui.viewmodel.leaderboard.LeaderboardEvent
 import com.jn.echomaze.ui.viewmodel.shop.ShopEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.random.Random
@@ -57,15 +58,23 @@ fun MainApp() {
         }
     }
 
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Home.route,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
+    ) {
         composable(route = Screen.Home.route) {
             val viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
             val state by viewModel.uiState.collectAsState()
 
             LaunchedEffect(Unit) {
                 viewModel.uiEffect.collectLatest { effect ->
+                    val soundEnabled = viewModel.uiState.value.stats?.isSoundEnabled ?: true
                     when (effect) {
-                        HomeEffect.PlayWinSound -> soundManager.playWin()
+                        HomeEffect.PlayWinSound -> if (soundEnabled) soundManager.playWin()
                     }
                 }
             }
@@ -119,7 +128,10 @@ fun MainApp() {
 
         composable(route = Screen.Pause.route) {
             PauseScreen(
-                onResumeClick = { navController.popBackStack() },
+                onResumeClick = {
+                    gameplayViewModel.onEvent(GameplayEvent.Resume)
+                    navController.popBackStack()
+                },
                 onMenuClick = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
@@ -138,9 +150,10 @@ fun MainApp() {
 
             LaunchedEffect(Unit) {
                 viewModel.uiEffect.collectLatest { effect ->
+                    val soundEnabled = viewModel.uiState.value.stats?.isSoundEnabled ?: true
                     when (effect) {
-                        ShopEffect.PlayClickSound -> soundManager.playClick()
-                        ShopEffect.PlayWinSound -> soundManager.playWin()
+                        ShopEffect.PlayClickSound -> if (soundEnabled) soundManager.playClick()
+                        ShopEffect.PlayWinSound -> if (soundEnabled) soundManager.playWin()
                     }
                 }
             }

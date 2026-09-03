@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +40,12 @@ fun GameOverScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            NeonTitle(text = "GAME OVER", color = Color.Red, fontSize = 40.sp)
+            NeonTitle(
+                text = "GAME OVER",
+                color = Color.Red,
+                fontSize = 40.sp,
+                textAlign = TextAlign.Center
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -47,7 +53,7 @@ fun GameOverScreen(
                 text = "The sequence was broken...",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White.copy(alpha = 0.7f),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(64.dp))

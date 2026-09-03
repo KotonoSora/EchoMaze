@@ -2,7 +2,8 @@ package com.jn.echomaze.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jn.echomaze.domain.model.UserStats
+import com.jn.echomaze.R
+import com.jn.echomaze.domain.model.Puzzle
 import com.jn.echomaze.domain.repository.GameRepository
 import com.jn.echomaze.domain.usecase.GetPuzzleInput
 import com.jn.echomaze.domain.usecase.GetPuzzleUseCase
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -44,15 +44,18 @@ class GameplayViewModel(
     private var timerJob: Job? = null
 
     private val puzzleImages = listOf(
-        com.jn.echomaze.R.drawable.assets_1,
-        com.jn.echomaze.R.drawable.assets_2,
-        com.jn.echomaze.R.drawable.assets_3,
-        com.jn.echomaze.R.drawable.assets_4,
-        com.jn.echomaze.R.drawable.assets_5
+        R.drawable.assets_1,
+        R.drawable.assets_2,
+        R.drawable.assets_3,
+        R.drawable.assets_4,
+        R.drawable.assets_5
     )
 
     init {
         observeData()
+        if (_uiState.value.puzzle == null) {
+            startNewPuzzle(Random.nextInt())
+        }
     }
 
     private fun observeData() {
@@ -70,6 +73,7 @@ class GameplayViewModel(
             GameplayEvent.TogglePreviewHint -> togglePreviewHint()
             is GameplayEvent.OnTileClick -> handleTileClick(event.index)
             GameplayEvent.TogglePause -> togglePause()
+            GameplayEvent.Resume -> unpause()
             GameplayEvent.DismissVictory -> _uiState.update { it.copy(isSolved = false) }
         }
     }
@@ -80,7 +84,7 @@ class GameplayViewModel(
                 timeElapsedSeconds = 0L,
                 isPaused = false,
                 isSolved = false,
-                showNumbersHint = false,
+                showNumbersHint = true,
                 showPreviewHint = false,
                 gridSize = 3
             )
@@ -103,19 +107,8 @@ class GameplayViewModel(
     }
 
     private fun toggleNumbersHint() {
-        val state = _uiState.value
-        if (state.coinBalance >= 10 || state.showNumbersHint) {
-            if (!state.showNumbersHint) {
-                viewModelScope.launch {
-                    val currentStats = gameRepository.getUserStats().first()
-                    gameRepository.updateStats(currentStats.copy(
-                        coinBalance = currentStats.coinBalance - 10
-                    ))
-                }
-            }
-            _uiState.update { it.copy(showNumbersHint = !it.showNumbersHint) }
-            emitEffect(GameplayEffect.PlayClickSound)
-        }
+        _uiState.update { it.copy(showNumbersHint = !it.showNumbersHint) }
+        emitEffect(GameplayEffect.PlayClickSound)
     }
 
     private fun togglePreviewHint() {
@@ -154,13 +147,13 @@ class GameplayViewModel(
 
     private fun onVictory() {
         emitEffect(GameplayEffect.PlayWinSound)
-        
+
         val state = _uiState.value
         val isDaily = state.puzzle?.seed == 0
         val finalScore = calculateScore(state.puzzle, state.timeElapsedSeconds)
         val finalCoins = if (isDaily) 200 else 50
 
-        _uiState.update { 
+        _uiState.update {
             it.copy(
                 isSolved = true,
                 earnedScore = finalScore,
@@ -180,7 +173,10 @@ class GameplayViewModel(
         }
     }
 
-    private fun calculateScore(puzzle: com.jn.echomaze.domain.model.Puzzle?, timeElapsed: Long): Int {
+    private fun calculateScore(
+        puzzle: Puzzle?,
+        timeElapsed: Long
+    ): Int {
         val p = puzzle ?: return 0
         val baseMoves = p.gridSize * p.gridSize * 10
         val moveBonus = (baseMoves * 2 - p.moves).coerceAtLeast(0) * 10
@@ -191,6 +187,10 @@ class GameplayViewModel(
     private fun togglePause() {
         _uiState.update { it.copy(isPaused = !it.isPaused) }
         emitEffect(GameplayEffect.PlayClickSound)
+    }
+
+    private fun unpause() {
+        _uiState.update { it.copy(isPaused = false) }
     }
 
     private fun emitEffect(effect: GameplayEffect) {

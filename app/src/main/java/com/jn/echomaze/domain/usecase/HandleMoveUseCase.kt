@@ -11,7 +11,7 @@ class HandleMoveUseCase : UseCase<HandleMoveInput, Puzzle> {
     override fun invoke(input: HandleMoveInput): Puzzle {
         val puzzle = input.puzzle
         val clickedIndex = input.clickedIndex
-        
+
         if (puzzle.isSolved) return puzzle
 
         val emptyIndex = puzzle.tiles.indexOf(0)
