@@ -11,7 +11,7 @@ configure<ApplicationExtension> {
 
     defaultConfig {
         applicationId = "com.jn.echomaze"
-        minSdk = 30
+        minSdk = 24
         versionCode = 1
         versionName = "1.0.0"
 
