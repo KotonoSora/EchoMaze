@@ -57,7 +57,11 @@ fun MainApp() {
                 GameplayEffect.PlayWinSound -> if (soundEnabled) soundManager.playWin()
                 GameplayEffect.PlayLoseSound -> if (soundEnabled) soundManager.playLose()
                 GameplayEffect.NavigateBack -> navController.popBackStack()
-                is GameplayEffect.ShowToast -> Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is GameplayEffect.ShowToast -> Toast.makeText(
+                    context,
+                    effect.message,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

@@ -69,10 +69,10 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                NeonTitle(text = "PuzzleMaze", fontSize = 44.sp)
+                NeonTitle(text = "EchoMaze", fontSize = 34.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "SLIDE MASTER",
+                    text = "IMAGE SLIDE MASTER",
                     color = CyberCyan,
                     style = MaterialTheme.typography.labelMedium.copy(
                         letterSpacing = 4.sp,
