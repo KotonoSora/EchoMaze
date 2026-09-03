@@ -3,6 +3,7 @@ package com.jn.echomaze.ui.viewmodel
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.billingclient.api.Purchase
 import com.jn.echomaze.billing.BillingManager
 import com.jn.echomaze.billing.CoinProduct
 import com.jn.echomaze.domain.repository.GameRepository
@@ -48,7 +49,7 @@ class ShopViewModel(
                 }
             }
         }
-        
+
         viewModelScope.launch {
             billingManager.productsFlow.collectLatest { products ->
                 _uiState.update { it.copy(products = products) }
@@ -65,9 +66,17 @@ class ShopViewModel(
     private fun observePurchases() {
         viewModelScope.launch {
             billingManager.purchasesFlow.collect { purchases ->
-                if (purchases.isNotEmpty()) {
-                    addCoins(1000)
-                    emitEffect(ShopEffect.PlayWinSound)
+                val soundEnabled = _uiState.value.stats?.isSoundEnabled ?: true
+                for (purchase in purchases) {
+                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                        val productId = purchase.products.firstOrNull() ?: ""
+                        val coins = billingManager.getCoinAmount(productId)
+                        val coinAmount = if (coins > 0) coins else 1000
+                        addCoins(coinAmount)
+                        if (soundEnabled) {
+                            emitEffect(ShopEffect.PlayWinSound)
+                        }
+                    }
                 }
             }
         }
@@ -86,8 +95,20 @@ class ShopViewModel(
     }
 
     private fun purchaseCoinPack(activity: Activity, product: CoinProduct) {
-        emitEffect(ShopEffect.PlayClickSound)
-        billingManager.launchBillingFlow(activity, product)
+        val soundEnabled = _uiState.value.stats?.isSoundEnabled ?: true
+        if (soundEnabled) {
+            emitEffect(ShopEffect.PlayClickSound)
+        }
+        viewModelScope.launch {
+            val launched = billingManager.launchBillingFlow(activity, product)
+            if (!launched) {
+                // Development / fallback purchase mode
+                addCoins(product.coins)
+                if (soundEnabled) {
+                    emitEffect(ShopEffect.PlayWinSound)
+                }
+            }
+        }
     }
 
     private fun emitEffect(effect: ShopEffect) {

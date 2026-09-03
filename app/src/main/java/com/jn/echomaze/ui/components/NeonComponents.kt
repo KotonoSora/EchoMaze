@@ -34,7 +34,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jn.echomaze.ui.theme.CyberCyan
@@ -98,28 +100,29 @@ fun NeonButton(
     modifier: Modifier = Modifier,
     color: Color = CyberCyan,
     enabled: Boolean = true,
-    cornerRadius: Dp = 8.dp,
-    glowRadius: Dp = 16.dp,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+    cornerRadius: Dp = 10.dp,
+    isPrimary: Boolean = false,
+    @Suppress("UNUSED_PARAMETER") glowRadius: Dp = 16.dp,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
     content: @Composable RowScope.() -> Unit
 ) {
     val buttonColor = if (enabled) color else color.copy(alpha = 0.3f)
+    val backgroundColor = if (enabled) {
+        if (isPrimary) color.copy(alpha = 0.30f) else color.copy(alpha = 0.16f)
+    } else {
+        color.copy(alpha = 0.05f)
+    }
+
     Surface(
         modifier = modifier
-            .glow(
-                color = buttonColor,
-                borderRadius = cornerRadius,
-                blurRadius = if (enabled) glowRadius else 0.dp,
-                offsetY = 2.dp
-            )
             .clip(RoundedCornerShape(cornerRadius))
             .clickable(enabled = enabled, onClick = onClick),
-        color = Color.Black.copy(alpha = 0.7f),
-        border = BorderStroke(2.dp, buttonColor)
+        color = backgroundColor,
+        shape = RoundedCornerShape(cornerRadius),
+        border = BorderStroke(if (isPrimary) 2.5.dp else 2.dp, buttonColor)
     ) {
         Row(
-            modifier = Modifier
-                .padding(contentPadding),
+            modifier = Modifier.padding(contentPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             content = content
@@ -134,30 +137,35 @@ fun NeonButton(
     modifier: Modifier = Modifier,
     color: Color = CyberCyan,
     enabled: Boolean = true,
+    isPrimary: Boolean = false,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
     icon: ImageVector? = null
 ) {
     NeonButton(
         onClick = onClick,
         modifier = modifier,
         color = color,
-        enabled = enabled
+        enabled = enabled,
+        isPrimary = isPrimary,
+        contentPadding = contentPadding
     ) {
         if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (enabled) color else color.copy(alpha = 0.3f),
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(22.dp)
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
         }
         Text(
             text = text.uppercase(),
             color = if (enabled) color else color.copy(alpha = 0.3f),
             style = MaterialTheme.typography.labelLarge.copy(
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
+                letterSpacing = 1.sp
+            ),
+            maxLines = 1
         )
     }
 }
@@ -167,21 +175,15 @@ fun NeonCard(
     modifier: Modifier = Modifier,
     color: Color = NeonPurple,
     cornerRadius: Dp = 12.dp,
-    glowRadius: Dp = 16.dp,
+    @Suppress("UNUSED_PARAMETER") glowRadius: Dp = 16.dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
-        modifier = modifier
-            .glow(
-                color = color,
-                borderRadius = cornerRadius,
-                blurRadius = glowRadius,
-                alpha = 0.2f
-            ),
+        modifier = modifier,
         shape = RoundedCornerShape(cornerRadius),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
-        border = BorderStroke(2.dp, color.copy(alpha = 0.5f))
+        color = color.copy(alpha = 0.12f),
+        border = BorderStroke(2.dp, color.copy(alpha = 0.6f))
     ) {
         Column(
             modifier = Modifier.padding(contentPadding),
@@ -201,8 +203,7 @@ fun NeonLoadingSpinner(
     ) {
         CircularProgressIndicator(
             color = color,
-            strokeWidth = 4.dp,
-            modifier = Modifier.glow(color, alpha = 0.5f, blurRadius = 12.dp)
+            strokeWidth = 4.dp
         )
     }
 }
@@ -212,7 +213,8 @@ fun NeonTitle(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = Color.White,
-    fontSize: androidx.compose.ui.unit.TextUnit = 24.sp
+    fontSize: TextUnit = 24.sp,
+    textAlign: TextAlign = TextAlign.Left,
 ) {
     NeonText(
         text = text.uppercase(),
@@ -223,7 +225,7 @@ fun NeonTitle(
             letterSpacing = 2.sp
         ),
         color = color,
-        glowRadius = 8.dp
+        textAlign = textAlign
     )
 }
 
@@ -233,11 +235,13 @@ fun NeonText(
     modifier: Modifier = Modifier,
     style: TextStyle = TextStyle.Default,
     color: Color = Color.White,
-    glowRadius: Dp = 4.dp
+    textAlign: TextAlign = TextAlign.Left,
+    @Suppress("UNUSED_PARAMETER") glowRadius: Dp = 4.dp
 ) {
     Text(
         text = text,
-        modifier = modifier.glow(color, alpha = 0.8f, blurRadius = glowRadius),
-        style = style.copy(color = color)
+        modifier = modifier,
+        style = style.copy(color = color),
+        textAlign = textAlign
     )
 }

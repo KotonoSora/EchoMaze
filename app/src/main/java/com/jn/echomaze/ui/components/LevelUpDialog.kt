@@ -61,8 +61,7 @@ fun LevelUpDialog(
                         .size(100.dp)
                         .clip(CircleShape)
                         .background(GoldCoin.copy(alpha = 0.1f))
-                        .border(2.dp, GoldCoin, CircleShape)
-                        .glow(GoldCoin, alpha = 0.5f, borderRadius = 50.dp),
+                        .border(2.dp, GoldCoin, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

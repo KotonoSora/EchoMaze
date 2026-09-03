@@ -2,7 +2,6 @@ package com.jn.echomaze.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jn.echomaze.domain.model.UserStats
 import com.jn.echomaze.domain.repository.GameRepository
 import com.jn.echomaze.ui.viewmodel.settings.SettingsEvent
 import com.jn.echomaze.ui.viewmodel.settings.SettingsUiState
@@ -45,11 +44,9 @@ class SettingsViewModel(
                 is SettingsEvent.OnSoundToggled -> {
                     gameRepository.updateStats(currentStats.copy(isSoundEnabled = event.enabled))
                 }
+
                 is SettingsEvent.OnMusicToggled -> {
                     gameRepository.updateStats(currentStats.copy(isMusicEnabled = event.enabled))
-                }
-                SettingsEvent.OnResetStats -> {
-                    gameRepository.resetGame()
                 }
             }
         }

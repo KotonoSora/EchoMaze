@@ -4,6 +4,8 @@ sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Gameplay : Screen("gameplay")
     data object Pause : Screen("pause")
+    data object GameOver : Screen("game_over")
+    data object Victory : Screen("victory")
     data object Shop : Screen("shop")
     data object Settings : Screen("settings")
     data object Help : Screen("help")

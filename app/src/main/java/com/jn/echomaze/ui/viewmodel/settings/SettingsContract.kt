@@ -10,5 +10,4 @@ data class SettingsUiState(
 sealed interface SettingsEvent {
     data class OnSoundToggled(val enabled: Boolean) : SettingsEvent
     data class OnMusicToggled(val enabled: Boolean) : SettingsEvent
-    data object OnResetStats : SettingsEvent
 }

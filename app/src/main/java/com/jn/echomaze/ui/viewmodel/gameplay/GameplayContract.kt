@@ -9,6 +9,7 @@ data class GameplayUiState(
     val timeElapsedSeconds: Long = 0L,
     val isPaused: Boolean = false,
     val isSolved: Boolean = false,
+    val isGameOver: Boolean = false,
     val isDailyChallenge: Boolean = false,
     val showNumbersHint: Boolean = false,
     val showPreviewHint: Boolean = false,
@@ -24,6 +25,10 @@ sealed interface GameplayEvent {
     data object TogglePreviewHint : GameplayEvent
     data class OnTileClick(val index: Int) : GameplayEvent
     data object TogglePause : GameplayEvent
+    data object Resume : GameplayEvent
+    data object RestartPuzzle : GameplayEvent
+    data object TryAgainGameOver : GameplayEvent
+    data object DismissGameOver : GameplayEvent
     data object DismissVictory : GameplayEvent
 }
 
@@ -33,4 +38,5 @@ sealed interface GameplayEffect {
     data object PlayWinSound : GameplayEffect
     data object PlayLoseSound : GameplayEffect
     data object NavigateBack : GameplayEffect
+    data class ShowToast(val message: String) : GameplayEffect
 }

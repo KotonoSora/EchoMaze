@@ -2,7 +2,8 @@ package com.jn.echomaze.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jn.echomaze.domain.model.UserStats
+import com.jn.echomaze.R
+import com.jn.echomaze.domain.model.Puzzle
 import com.jn.echomaze.domain.repository.GameRepository
 import com.jn.echomaze.domain.usecase.GetPuzzleInput
 import com.jn.echomaze.domain.usecase.GetPuzzleUseCase
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -44,15 +44,18 @@ class GameplayViewModel(
     private var timerJob: Job? = null
 
     private val puzzleImages = listOf(
-        com.jn.echomaze.R.drawable.assets_1,
-        com.jn.echomaze.R.drawable.assets_2,
-        com.jn.echomaze.R.drawable.assets_3,
-        com.jn.echomaze.R.drawable.assets_4,
-        com.jn.echomaze.R.drawable.assets_5
+        R.drawable.assets_1,
+        R.drawable.assets_2,
+        R.drawable.assets_3,
+        R.drawable.assets_4,
+        R.drawable.assets_5
     )
 
     init {
         observeData()
+        if (_uiState.value.puzzle == null) {
+            startNewPuzzle(Random.nextInt())
+        }
     }
 
     private fun observeData() {
@@ -70,7 +73,32 @@ class GameplayViewModel(
             GameplayEvent.TogglePreviewHint -> togglePreviewHint()
             is GameplayEvent.OnTileClick -> handleTileClick(event.index)
             GameplayEvent.TogglePause -> togglePause()
+            GameplayEvent.Resume -> unpause()
+            GameplayEvent.RestartPuzzle -> restartCurrentPuzzle()
+            GameplayEvent.TryAgainGameOver -> tryAgainGameOver()
+            GameplayEvent.DismissGameOver -> _uiState.update { it.copy(isGameOver = false) }
             GameplayEvent.DismissVictory -> _uiState.update { it.copy(isSolved = false) }
+        }
+    }
+
+    private fun restartCurrentPuzzle() {
+        val currentSeed = _uiState.value.puzzle?.seed ?: Random.nextInt()
+        startNewPuzzle(currentSeed)
+    }
+
+    private fun tryAgainGameOver() {
+        val state = _uiState.value
+        val currentStats = state.stats ?: return
+
+        if (currentStats.coinBalance >= 30) {
+            val newCoins = currentStats.coinBalance - 30
+            viewModelScope.launch {
+                gameRepository.updateStats(currentStats.copy(coinBalance = newCoins))
+            }
+            _uiState.update { it.copy(isGameOver = false) }
+            restartCurrentPuzzle()
+        } else {
+            emitEffect(GameplayEffect.ShowToast("Not enough coins to try again! (30 required)"))
         }
     }
 
@@ -80,6 +108,7 @@ class GameplayViewModel(
                 timeElapsedSeconds = 0L,
                 isPaused = false,
                 isSolved = false,
+                isGameOver = false,
                 showNumbersHint = false,
                 showPreviewHint = false,
                 gridSize = 3
@@ -104,23 +133,42 @@ class GameplayViewModel(
 
     private fun toggleNumbersHint() {
         val state = _uiState.value
-        if (state.coinBalance >= 10 || state.showNumbersHint) {
-            if (!state.showNumbersHint) {
+        if (!state.showNumbersHint) {
+            val currentStats = state.stats ?: return
+            if (currentStats.coinBalance >= 50) {
+                val newCoins = currentStats.coinBalance - 50
                 viewModelScope.launch {
-                    val currentStats = gameRepository.getUserStats().first()
-                    gameRepository.updateStats(currentStats.copy(
-                        coinBalance = currentStats.coinBalance - 10
-                    ))
+                    gameRepository.updateStats(currentStats.copy(coinBalance = newCoins))
                 }
+                _uiState.update { it.copy(showNumbersHint = true) }
+                emitEffect(GameplayEffect.PlayClickSound)
+            } else {
+                emitEffect(GameplayEffect.ShowToast("Not enough coins! (50 required)"))
             }
-            _uiState.update { it.copy(showNumbersHint = !it.showNumbersHint) }
+        } else {
+            _uiState.update { it.copy(showNumbersHint = false) }
             emitEffect(GameplayEffect.PlayClickSound)
         }
     }
 
     private fun togglePreviewHint() {
-        _uiState.update { it.copy(showPreviewHint = !it.showPreviewHint) }
-        emitEffect(GameplayEffect.PlayClickSound)
+        val state = _uiState.value
+        if (!state.showPreviewHint) {
+            val currentStats = state.stats ?: return
+            if (currentStats.coinBalance >= 50) {
+                val newCoins = currentStats.coinBalance - 50
+                viewModelScope.launch {
+                    gameRepository.updateStats(currentStats.copy(coinBalance = newCoins))
+                }
+                _uiState.update { it.copy(showPreviewHint = true) }
+                emitEffect(GameplayEffect.PlayClickSound)
+            } else {
+                emitEffect(GameplayEffect.ShowToast("Not enough coins! (50 required)"))
+            }
+        } else {
+            _uiState.update { it.copy(showPreviewHint = false) }
+            emitEffect(GameplayEffect.PlayClickSound)
+        }
     }
 
     private fun startTimer() {
@@ -129,7 +177,7 @@ class GameplayViewModel(
             while (true) {
                 delay(1000)
                 val state = _uiState.value
-                if (!state.isPaused && !state.isSolved && state.puzzle?.isSolved == false) {
+                if (!state.isPaused && !state.isSolved && !state.isGameOver && state.puzzle?.isSolved == false) {
                     _uiState.update { it.copy(timeElapsedSeconds = it.timeElapsedSeconds + 1) }
                 }
             }
@@ -139,28 +187,36 @@ class GameplayViewModel(
     private fun handleTileClick(index: Int) {
         val state = _uiState.value
         val currentPuzzle = state.puzzle ?: return
-        if (state.isPaused || state.isSolved || currentPuzzle.isSolved) return
+        if (state.isPaused || state.isSolved || state.isGameOver || currentPuzzle.isSolved) return
 
         val newPuzzle = handleMoveUseCase(HandleMoveInput(currentPuzzle, index))
         if (newPuzzle != currentPuzzle) {
             _uiState.update { it.copy(puzzle = newPuzzle) }
             emitEffect(GameplayEffect.PlayMoveSound)
 
+            val maxMoves = state.gridSize * state.gridSize * 15
             if (newPuzzle.isSolved) {
                 onVictory()
+            } else if (newPuzzle.moves >= maxMoves) {
+                onGameOver()
             }
         }
     }
 
+    private fun onGameOver() {
+        emitEffect(GameplayEffect.PlayLoseSound)
+        _uiState.update { it.copy(isGameOver = true) }
+    }
+
     private fun onVictory() {
         emitEffect(GameplayEffect.PlayWinSound)
-        
+
         val state = _uiState.value
         val isDaily = state.puzzle?.seed == 0
         val finalScore = calculateScore(state.puzzle, state.timeElapsedSeconds)
         val finalCoins = if (isDaily) 200 else 50
 
-        _uiState.update { 
+        _uiState.update {
             it.copy(
                 isSolved = true,
                 earnedScore = finalScore,
@@ -180,7 +236,10 @@ class GameplayViewModel(
         }
     }
 
-    private fun calculateScore(puzzle: com.jn.echomaze.domain.model.Puzzle?, timeElapsed: Long): Int {
+    private fun calculateScore(
+        puzzle: Puzzle?,
+        timeElapsed: Long
+    ): Int {
         val p = puzzle ?: return 0
         val baseMoves = p.gridSize * p.gridSize * 10
         val moveBonus = (baseMoves * 2 - p.moves).coerceAtLeast(0) * 10
@@ -191,6 +250,10 @@ class GameplayViewModel(
     private fun togglePause() {
         _uiState.update { it.copy(isPaused = !it.isPaused) }
         emitEffect(GameplayEffect.PlayClickSound)
+    }
+
+    private fun unpause() {
+        _uiState.update { it.copy(isPaused = false) }
     }
 
     private fun emitEffect(effect: GameplayEffect) {

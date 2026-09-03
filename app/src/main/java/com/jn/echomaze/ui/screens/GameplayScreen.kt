@@ -1,5 +1,6 @@
 package com.jn.echomaze.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -45,18 +47,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jn.echomaze.R
+import com.jn.echomaze.domain.model.Puzzle
 import com.jn.echomaze.ui.components.HeaderBar
 import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
 import com.jn.echomaze.ui.components.NeonScaffold
-import com.jn.echomaze.ui.components.glow
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.GameTheme
 import com.jn.echomaze.ui.theme.NeonPink
 import com.jn.echomaze.ui.theme.NeonYellow
 import com.jn.echomaze.ui.viewmodel.gameplay.GameplayEvent
 import com.jn.echomaze.ui.viewmodel.gameplay.GameplayUiState
-import kotlin.random.Random
 
 @Composable
 fun GameplayScreen(
@@ -69,12 +71,21 @@ fun GameplayScreen(
     val puzzle = state.puzzle
     val maxMoves = state.gridSize * state.gridSize * 15
 
+    BackHandler {
+        onEvent(GameplayEvent.TogglePause)
+        onPauseClick()
+    }
+
     NeonScaffold(
         topBar = {
             HeaderBar(
                 variant = HeaderVariant.GAMEPLAY,
                 title = "PUZZLE",
                 coinBalance = state.coinBalance,
+                onBackClick = {
+                    onEvent(GameplayEvent.TogglePause)
+                    onPauseClick()
+                },
                 onCoinsClick = onQuickBuyCoins,
                 onActionClick = {
                     onEvent(GameplayEvent.TogglePause)
@@ -83,19 +94,18 @@ fun GameplayScreen(
                 actionIcon = Icons.Rounded.Pause
             )
         }
-    ) { paddingValues ->
+    ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Stats Section
+                // Stats Header Section
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -108,22 +118,19 @@ fun GameplayScreen(
                                 value = "${puzzle?.moves ?: 0} / $maxMoves",
                                 color = if ((puzzle?.moves
                                         ?: 0) > maxMoves * 0.8f
-                                ) NeonPink else theme.primaryColor
+                                ) NeonPink else theme.primaryColor,
+                                modifier = Modifier.weight(1f)
                             )
                             VerticalDivider(
                                 modifier = Modifier.height(32.dp),
-                                color = Color.White.copy(alpha = 0.1f)
+                                color = Color.White.copy(alpha = 0.15f)
                             )
                             StatItem(
                                 label = "TIME",
                                 value = formatTimeInSec(state.timeElapsedSeconds),
-                                color = theme.primaryColor
+                                color = theme.primaryColor,
+                                modifier = Modifier.weight(1f)
                             )
-                            VerticalDivider(
-                                modifier = Modifier.height(32.dp),
-                                color = Color.White.copy(alpha = 0.1f)
-                            )
-                            StatItem(label = "TARGET", value = "SOLVE IMAGE", color = Color.White)
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -145,7 +152,7 @@ fun GameplayScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Hint Buttons
+                // Action / Hint Buttons
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -153,10 +160,11 @@ fun GameplayScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     NeonButton(
-                        text = if (state.showNumbersHint) "HIDE #" else "SHOW # (10)",
+                        text = "HINTS",
                         onClick = { onEvent(GameplayEvent.ToggleNumbersHint) },
                         modifier = Modifier.weight(1f),
-                        color = NeonYellow,
+                        color = if (state.showNumbersHint) NeonYellow else Color.Gray,
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
                         icon = Icons.Rounded.Numbers
                     )
                     NeonButton(
@@ -164,6 +172,7 @@ fun GameplayScreen(
                         onClick = { onEvent(GameplayEvent.TogglePreviewHint) },
                         modifier = Modifier.weight(1f),
                         color = NeonPink,
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
                         icon = Icons.Rounded.Visibility
                     )
                 }
@@ -171,7 +180,7 @@ fun GameplayScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Puzzle Grid
+                // Puzzle Grid Board
                 BoxWithConstraints(
                     modifier = Modifier
                         .padding(horizontal = 24.dp)
@@ -213,15 +222,7 @@ fun GameplayScreen(
                 PreviewHintDialog(
                     imageRes = puzzle.imageRes,
                     theme = theme,
-                    onDismiss = { onEvent(GameplayEvent.TogglePreviewHint) })
-            }
-
-            if (state.isSolved) {
-                VictoryDialog(
-                    score = state.earnedScore,
-                    coins = state.earnedCoins,
-                    onNextClick = { onEvent(GameplayEvent.StartPuzzle(Random.nextInt())) },
-                    theme = theme
+                    onDismiss = { onEvent(GameplayEvent.TogglePreviewHint) }
                 )
             }
         }
@@ -229,57 +230,29 @@ fun GameplayScreen(
 }
 
 @Composable
-fun VictoryDialog(score: Int, coins: Int, onNextClick: () -> Unit, theme: GameTheme) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.Black.copy(alpha = 0.8f)
+private fun StatItem(
+    label: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "VICTORY!",
-                style = MaterialTheme.typography.displayMedium,
-                color = theme.primaryColor,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Score: $score",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White
-            )
-            Text(
-                text = "+$coins COINS earned",
-                style = MaterialTheme.typography.titleMedium,
-                color = NeonYellow
-            )
-            Spacer(modifier = Modifier.height(48.dp))
-            NeonButton(
-                text = "NEXT PUZZLE",
-                onClick = onNextClick,
-                color = theme.primaryColor
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatItem(label: String, value: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.6f)
         )
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium,
             color = color,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1
         )
     }
 }
@@ -305,11 +278,12 @@ fun PuzzleTile(
         Surface(
             modifier = Modifier
                 .fillMaxSize()
+                .border(1.dp, theme.primaryColor.copy(alpha = 0.4f), RectangleShape)
                 .clickable { onClick() },
             color = if (imageRes != null) theme.tileColor else theme.primaryColor.copy(alpha = 0.8f),
             shape = RectangleShape
         ) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize()) {
                 if (imageRes != null) {
                     val painter = painterResource(id = imageRes)
                     Box(
@@ -336,15 +310,19 @@ fun PuzzleTile(
                 }
 
                 if (imageRes == null || showNumber) {
-                    Text(
-                        text = tileId.toString(),
-                        color = if (imageRes != null) theme.textColor else Color.Black,
-                        style = MaterialTheme.typography.titleLarge.copy(
+                    Surface(
+                        color = Color.Black.copy(alpha = 0.75f),
+                        shape = RoundedCornerShape(bottomEnd = 8.dp),
+                        modifier = Modifier.align(Alignment.TopStart)
+                    ) {
+                        Text(
+                            text = tileId.toString(),
+                            color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        ),
-                        modifier = Modifier.glow(if (imageRes != null) theme.tileColor else Color.Transparent)
-                    )
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
         }
@@ -363,9 +341,12 @@ fun PreviewHintDialog(
             .clickable { onDismiss() },
         color = Color.Black.copy(alpha = 0.9f)
     ) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "TARGET IMAGE",
@@ -383,11 +364,12 @@ fun PreviewHintDialog(
                         .border(2.dp, theme.primaryColor, RoundedCornerShape(16.dp)),
                     contentScale = ContentScale.FillBounds
                 )
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Tap anywhere to return",
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = Color.White.copy(alpha = 0.6f),
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(top = 24.dp)
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
         }
@@ -402,10 +384,10 @@ fun GameplayScreenPreview() {
             state = GameplayUiState(
                 timeElapsedSeconds = 45,
                 gridSize = 3,
-                puzzle = com.jn.echomaze.domain.model.Puzzle(
+                puzzle = Puzzle(
                     tiles = listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
                     gridSize = 3,
-                    imageRes = com.jn.echomaze.R.drawable.assets_1
+                    imageRes = R.drawable.assets_1
                 )
             ),
             onEvent = {},

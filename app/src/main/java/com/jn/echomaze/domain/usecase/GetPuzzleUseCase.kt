@@ -30,6 +30,14 @@ class GetPuzzleUseCase : UseCase<GetPuzzleInput, Puzzle> {
             emptyIndex = moveToIndex
         }
 
+        // Ensure the initial state is not accidentally already solved
+        if (checkSolved(tiles)) {
+            val neighbors = getNeighbors(emptyIndex, input.gridSize)
+            val moveToIndex = neighbors.first()
+            tiles[emptyIndex] = tiles[moveToIndex]
+            tiles[moveToIndex] = 0
+        }
+
         return Puzzle(
             tiles = tiles,
             gridSize = input.gridSize,
@@ -38,6 +46,13 @@ class GetPuzzleUseCase : UseCase<GetPuzzleInput, Puzzle> {
             imageRes = input.imageRes,
             seed = input.seed
         )
+    }
+
+    private fun checkSolved(tiles: List<Int>): Boolean {
+        for (i in 0 until tiles.size - 1) {
+            if (tiles[i] != i + 1) return false
+        }
+        return tiles.last() == 0
     }
 
     private fun getNeighbors(index: Int, gridSize: Int): List<Int> {

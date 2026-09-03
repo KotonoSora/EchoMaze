@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,7 +32,6 @@ import com.jn.echomaze.ui.components.HeaderVariant
 import com.jn.echomaze.ui.components.NeonButton
 import com.jn.echomaze.ui.components.NeonScaffold
 import com.jn.echomaze.ui.components.NeonTitle
-import com.jn.echomaze.ui.components.glow
 import com.jn.echomaze.ui.theme.AppTheme
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.GoldCoin
@@ -58,7 +58,7 @@ fun HomeScreen(
                 onShopClick = onShopClick
             )
         }
-    ) { _ ->
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -66,30 +66,35 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                NeonTitle(text = "PuzzleMaze", fontSize = 48.sp)
+                NeonTitle(text = "EchoMaze", fontSize = 34.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "SLIDE MASTER",
+                    text = "IMAGE SLIDE MASTER",
                     color = CyberCyan,
                     style = MaterialTheme.typography.labelMedium.copy(
                         letterSpacing = 4.sp,
                         fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier.glow(CyberCyan, alpha = 0.3f)
+                    )
                 )
             }
 
-            Spacer(modifier = Modifier.height(96.dp))
+            Spacer(modifier = Modifier.height(64.dp))
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                HomeMenuItem("PLAY GAME", onPlayClick, CyberCyan, Icons.Rounded.PlayArrow)
+                HomeMenuItem(
+                    "PLAY GAME",
+                    onPlayClick,
+                    CyberCyan,
+                    Icons.Rounded.PlayArrow,
+                    isPrimary = true
+                )
                 HomeMenuItem(
                     "DAILY CHALLENGE",
                     onDailyChallengeClick,
@@ -107,7 +112,7 @@ fun HomeScreen(
                 HomeMenuItem("SETTINGS", onSettingsClick, Color.Gray, Icons.Rounded.Settings)
             }
 
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(48.dp))
         }
     }
 }
@@ -117,13 +122,15 @@ private fun HomeMenuItem(
     text: String,
     onClick: () -> Unit,
     color: Color,
-    icon: androidx.compose.ui.graphics.vector.ImageVector
+    icon: ImageVector,
+    isPrimary: Boolean = false
 ) {
     NeonButton(
         text = text,
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         color = color,
+        isPrimary = isPrimary,
         icon = icon
     )
 }

@@ -14,11 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -26,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.jn.echomaze.ui.theme.CyberCyan
 import com.jn.echomaze.ui.theme.PressStart2P
 
+@Suppress("UNUSED_PARAMETER")
 fun Modifier.glow(
     color: Color,
     alpha: Float = 0.5f,
@@ -33,30 +31,7 @@ fun Modifier.glow(
     blurRadius: Dp = 8.dp,
     offsetY: Dp = 0.dp,
     offsetX: Dp = 0.dp
-) = this.drawBehind {
-    val transparentColor = color.copy(alpha = 0.0f).toArgb()
-    val shadowColor = color.copy(alpha = alpha).toArgb()
-    this.drawIntoCanvas {
-        val paint = Paint()
-        val frameworkPaint = paint.asFrameworkPaint()
-        frameworkPaint.color = transparentColor
-        frameworkPaint.setShadowLayer(
-            blurRadius.toPx(),
-            offsetX.toPx(),
-            offsetY.toPx(),
-            shadowColor
-        )
-        it.drawRoundRect(
-            0f,
-            0f,
-            this.size.width,
-            this.size.height,
-            borderRadius.toPx(),
-            borderRadius.toPx(),
-            paint
-        )
-    }
-}
+) = this
 
 @Composable
 fun GlowButton(
@@ -65,18 +40,18 @@ fun GlowButton(
     modifier: Modifier = Modifier,
     color: Color = CyberCyan
 ) {
-    // Enhanced retro game button style
+    // Rich retro game arcade button style
     Surface(
         modifier = modifier
-            .glow(color = color, borderRadius = 4.dp, blurRadius = 8.dp, offsetY = 4.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(8.dp))
             .clickable(onClick = onClick),
-        color = Color.Black.copy(alpha = 0.5f),
+        color = color.copy(alpha = 0.18f),
+        shape = RoundedCornerShape(8.dp),
         border = BorderStroke(2.dp, color)
     ) {
         Box(
             modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 12.dp),
+                .padding(horizontal = 24.dp, vertical = 14.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -94,7 +69,7 @@ fun GlowButton(
 
 @Composable
 fun IconButtonGlow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -103,11 +78,11 @@ fun IconButtonGlow(
     Surface(
         modifier = modifier
             .size(56.dp)
-            .glow(color = color, borderRadius = 8.dp, blurRadius = 8.dp, offsetY = 2.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(10.dp))
             .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-        border = BorderStroke(2.dp, color.copy(alpha = 0.8f))
+        color = color.copy(alpha = 0.18f),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(2.dp, color)
     ) {
         Box(
             modifier = Modifier,
