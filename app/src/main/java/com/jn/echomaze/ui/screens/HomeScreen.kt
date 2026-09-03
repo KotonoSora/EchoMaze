@@ -58,7 +58,7 @@ fun HomeScreen(
                 onShopClick = onShopClick
             )
         }
-    ) { _ ->
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

@@ -1,5 +1,6 @@
 package com.jn.echomaze.ui.navigation
 
+import android.widget.Toast
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
@@ -14,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import com.jn.echomaze.MainApplication
 import com.jn.echomaze.ui.AppViewModelProvider
 import com.jn.echomaze.ui.screens.DailyChallengeScreen
+import com.jn.echomaze.ui.screens.GameOverScreen
 import com.jn.echomaze.ui.screens.GameplayScreen
 import com.jn.echomaze.ui.screens.HelpScreen
 import com.jn.echomaze.ui.screens.HomeScreen
@@ -21,6 +23,7 @@ import com.jn.echomaze.ui.screens.LeaderboardScreen
 import com.jn.echomaze.ui.screens.PauseScreen
 import com.jn.echomaze.ui.screens.SettingsScreen
 import com.jn.echomaze.ui.screens.ShopScreen
+import com.jn.echomaze.ui.screens.VictoryScreen
 import com.jn.echomaze.ui.theme.GameTheme
 import com.jn.echomaze.ui.viewmodel.GameplayViewModel
 import com.jn.echomaze.ui.viewmodel.HomeViewModel
@@ -54,6 +57,7 @@ fun MainApp() {
                 GameplayEffect.PlayWinSound -> if (soundEnabled) soundManager.playWin()
                 GameplayEffect.PlayLoseSound -> if (soundEnabled) soundManager.playLose()
                 GameplayEffect.NavigateBack -> navController.popBackStack()
+                is GameplayEffect.ShowToast -> Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -117,6 +121,18 @@ fun MainApp() {
         }
 
         composable(route = Screen.Gameplay.route) {
+            LaunchedEffect(gameplayState.isSolved) {
+                if (gameplayState.isSolved) {
+                    navController.navigate(Screen.Victory.route)
+                }
+            }
+
+            LaunchedEffect(gameplayState.isGameOver) {
+                if (gameplayState.isGameOver) {
+                    navController.navigate(Screen.GameOver.route)
+                }
+            }
+
             GameplayScreen(
                 state = gameplayState,
                 onEvent = { gameplayViewModel.onEvent(it) },
@@ -138,8 +154,51 @@ fun MainApp() {
                     }
                 },
                 onRestartClick = {
+                    gameplayViewModel.onEvent(GameplayEvent.RestartPuzzle)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Screen.Victory.route) {
+            VictoryScreen(
+                score = gameplayState.earnedScore,
+                coins = gameplayState.earnedCoins,
+                isDailyChallenge = gameplayState.isDailyChallenge,
+                onPlayNextClick = {
                     gameplayViewModel.onEvent(GameplayEvent.StartPuzzle(Random.nextInt()))
                     navController.popBackStack()
+                },
+                onRestartClick = {
+                    gameplayViewModel.onEvent(GameplayEvent.RestartPuzzle)
+                    navController.popBackStack()
+                },
+                onHomeClick = {
+                    gameplayViewModel.onEvent(GameplayEvent.DismissVictory)
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(route = Screen.GameOver.route) {
+            GameOverScreen(
+                onReplayClick = {
+                    gameplayViewModel.onEvent(GameplayEvent.TryAgainGameOver)
+                    if (!gameplayViewModel.uiState.value.isGameOver) {
+                        navController.popBackStack()
+                    }
+                },
+                onPlayNewClick = {
+                    gameplayViewModel.onEvent(GameplayEvent.StartPuzzle(Random.nextInt()))
+                    navController.popBackStack()
+                },
+                onMenuClick = {
+                    gameplayViewModel.onEvent(GameplayEvent.DismissGameOver)
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
                 }
             )
         }

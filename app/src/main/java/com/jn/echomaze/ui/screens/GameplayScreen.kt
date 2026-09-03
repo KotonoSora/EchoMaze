@@ -59,7 +59,6 @@ import com.jn.echomaze.ui.theme.NeonPink
 import com.jn.echomaze.ui.theme.NeonYellow
 import com.jn.echomaze.ui.viewmodel.gameplay.GameplayEvent
 import com.jn.echomaze.ui.viewmodel.gameplay.GameplayUiState
-import kotlin.random.Random
 
 @Composable
 fun GameplayScreen(
@@ -161,7 +160,7 @@ fun GameplayScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     NeonButton(
-                        text = "NUMBERS",
+                        text = "HINTS",
                         onClick = { onEvent(GameplayEvent.ToggleNumbersHint) },
                         modifier = Modifier.weight(1f),
                         color = if (state.showNumbersHint) NeonYellow else Color.Gray,
@@ -226,58 +225,6 @@ fun GameplayScreen(
                     onDismiss = { onEvent(GameplayEvent.TogglePreviewHint) }
                 )
             }
-
-            if (state.isSolved) {
-                VictoryDialog(
-                    score = state.earnedScore,
-                    coins = state.earnedCoins,
-                    onNextClick = { onEvent(GameplayEvent.StartPuzzle(Random.nextInt())) },
-                    theme = theme
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun VictoryDialog(score: Int, coins: Int, onNextClick: () -> Unit, theme: GameTheme) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.Black.copy(alpha = 0.85f)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "VICTORY!",
-                style = MaterialTheme.typography.displayMedium,
-                color = theme.primaryColor,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "SCORE: $score",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "+$coins COINS EARNED",
-                style = MaterialTheme.typography.titleMedium,
-                color = NeonYellow
-            )
-            Spacer(modifier = Modifier.height(48.dp))
-            NeonButton(
-                text = "NEXT PUZZLE",
-                onClick = onNextClick,
-                color = theme.primaryColor,
-                isPrimary = true,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }

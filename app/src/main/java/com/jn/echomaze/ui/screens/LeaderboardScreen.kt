@@ -48,11 +48,10 @@ fun LeaderboardScreen(
                 onBackClick = onBackClick
             )
         }
-    ) { paddingValues ->
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
             // Table Header

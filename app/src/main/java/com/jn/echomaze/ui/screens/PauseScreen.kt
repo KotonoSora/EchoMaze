@@ -57,20 +57,20 @@ fun PauseScreen(
             GlowButton(
                 text = "Resume",
                 onClick = onResumeClick,
-                modifier = Modifier.width(200.dp)
+                modifier = Modifier.width(280.dp)
             )
 
             GlowButton(
                 text = "Restart",
                 onClick = onRestartClick,
-                modifier = Modifier.width(200.dp),
+                modifier = Modifier.width(280.dp),
                 color = NeonPurple
             )
 
             GlowButton(
                 text = "Main Menu",
                 onClick = onMenuClick,
-                modifier = Modifier.width(200.dp),
+                modifier = Modifier.width(280.dp),
                 color = Color.Gray
             )
         }

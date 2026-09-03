@@ -49,7 +49,7 @@ fun HelpScreen(
                 onBackClick = onBackClick
             )
         }
-    ) { _ ->
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
